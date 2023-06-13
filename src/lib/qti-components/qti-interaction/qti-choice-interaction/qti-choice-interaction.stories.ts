@@ -36,7 +36,7 @@ const meta: Meta = {
       ],
       table: { category: 'QTI' }
     },
-    shuffle: { description: 'unsupported', table: { category: 'QTI' } },
+    shuffle: { control: { type: 'boolean' } },
     'data-max-selections-message': { description: 'unsupported', table: { category: 'QTI' } },
     'data-min-selections-message': { description: 'unsupported', table: { category: 'QTI' } }
   }
@@ -55,16 +55,17 @@ export const Interaction = {
       min-choices=${ifDefined(args['min-choices'])}
       max-choices=${ifDefined(args['max-choices'])}
       orientation=${ifDefined(args.orientation)}
+      ?shuffle=${args.shuffle}
       ?readonly=${args.readonly}
       .disabled=${args.disabled}
       >${'\n'}${[
-        'I think you can use WorkFlow.',
-        'You should use FlowChart',
-        'No you should use Workload Rage.',
-        'I would recommend Chart Up.'
+        {text: 'I think you can use WorkFlow.',fixed:false},
+        {text: 'Fixed! You should use FlowChart',fixed:true},
+        {text: 'No you should use Workload Rage.',fixed:false},
+        {text: 'I would recommend Chart Up.',fixed:false}
       ].map(
         (item, index) =>
-          html` <qti-simple-choice data-testid="choice-${index}" identifier="choice-${index}">${item}</qti-simple-choice
+          html` <qti-simple-choice ?fixed=${item.fixed} data-testid="choice-${index}" identifier="choice-${index}">${item.text}</qti-simple-choice
             >${'\n'}`
       )}</qti-choice-interaction
     >`;

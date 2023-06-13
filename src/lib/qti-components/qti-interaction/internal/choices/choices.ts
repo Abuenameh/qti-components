@@ -30,6 +30,35 @@ export abstract class Choices extends Interaction {
   @watch('maxChoices', { waitUntilFirstUpdate: true })
   _handleMaxChoicesChange = () => this._determineInputType();
 
+  @property({ reflect: true, type: Boolean }) shuffle = false;
+  @watch('shuffle', { waitUntilFirstUpdate: true })
+  _handleShuffleChange = (_: boolean, shuffle: boolean) => {
+    const fixedIndexes = [];
+    // Get all qti-simple-choice elements
+    const choices = Array.from(this.querySelectorAll('qti-simple-choice'));
+    choices.forEach((choice, index) => {
+      choice.style.order = 'initial';
+    });
+    if (!shuffle) return;
+
+    const nonFixedChoices = Array.from(choices).filter((choice, index) => {
+      choice.hasAttribute('fixed') && fixedIndexes.push(index);
+      return !choice.hasAttribute('fixed');
+    });
+
+    // Set the order property for all choices
+    choices.forEach((choice, index) => {
+      choice.style.order = index + '';
+    });
+    const shuffledArray = generateShuffledArray(choices.length, fixedIndexes);
+
+    console.log(choices.length, fixedIndexes)
+    // Set the order property for all choices
+    nonFixedChoices.forEach((choice, index) => {
+      choice.style.order = shuffledArray[index] + '';
+    });
+  };
+
   constructor() {
     super();
     this.addEventListener('qti-register-choice', this._registerChoiceElement);
@@ -135,3 +164,19 @@ export abstract class Choices extends Interaction {
     this.saveResponse(result);
   }
 }
+
+const generateShuffledArray = (n, excludeNumbers = []) => {
+  // Create an array of numbers from 1 to n
+  let numbers = Array.from({ length: n }, (_, index) => index + 1);
+
+  // Filter out excluded numbers
+  numbers = numbers.filter(number => !excludeNumbers.includes(number));
+
+  // Shuffle the array randomly
+  numbers.forEach((_, i, arr) => {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  });
+
+  return numbers;
+};
