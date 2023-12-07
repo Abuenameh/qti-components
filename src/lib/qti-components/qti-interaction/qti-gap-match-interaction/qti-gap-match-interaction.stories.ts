@@ -46,7 +46,7 @@ const meta: Meta = {
 };
 export default meta;
 
-export const Interaction = {
+export const Default = {
   render: args =>
     html`<qti-gap-match-interaction
       response-identifier=${ifDefined(args['response-identifier'])}
@@ -75,16 +75,13 @@ export const Interaction = {
     </qti-gap-match-interaction>`
 };
 
-export const Item = {
+export const Example = {
   render: () => {
     const testRef = createRef<QtiAssessmentItem>();
     return html` <button @click="${() => testRef.value.processResponse()}">processResponse</button>
-      <button @click="${() => testRef.value.resetInteractions()}">Reset</button>
-      <button @click="${() => alert(testRef.value.validateResponses())}">Validate</button>
-
       <button
         @click=${() => {
-          testRef.value.showCorrectResponse();
+          testRef.value._showCorrectResponse();
         }}
       >
         set correct response

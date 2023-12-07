@@ -1,8 +1,9 @@
 import { css, html } from 'lit';
-import { ifDefined } from 'lit/directives/if-defined.js';
-import { Interaction } from '../internal/interaction/interaction';
-import { resetCss } from '../../utilities/reset-styles/reset-shadowroot-styles';
 import { customElement, property, state } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
+import { createRef } from 'lit/directives/ref.js';
+import { watch } from '../../../decorators';
+import { Interaction } from '../internal/interaction/interaction';
 
 @customElement('qti-text-entry-interaction')
 export class QtiTextEntryInteraction extends Interaction {
@@ -15,19 +16,25 @@ export class QtiTextEntryInteraction extends Interaction {
   @state()
   private _value = '';
 
+  @state()
+  private _correctValue = '';
+
+  @state()
+  private _size = 5;
+
+  inputRef = createRef<HTMLInputElement>();
+
   @property({ type: String, attribute: 'class' }) classNames;
-  // @watch('classNames', { waitUntilFirstUpdate: true })
-  // handleclassNamesChange(old, disabled: boolean) {
-  //   const classNames = this.classNames.split(' ');
-  //   classNames.forEach((className: string) => {
-  //     if (className.startsWith('qti-height-lines')) {
-  //       const nrRows = className.replace('qti-height-lines-', '');
-  //       if (this.textareaRef) {
-  //         this.textareaRef.value.rows = parseInt(nrRows);
-  //       }
-  //     }
-  //   });
-  // }
+  @watch('classNames')
+  handleclassNamesChange(old, classes: string) {
+    const classNames = classes.split(' ');
+    classNames.forEach((className: string) => {
+      if (className.startsWith('qti-input-width')) {
+        const nrRows = className.replace('qti-input-width-', '');
+        this._size = parseInt(nrRows);
+      }
+    });
+  }
 
   public set response(value: string | undefined) {
     this._value = value !== undefined ? value : '';
@@ -39,36 +46,47 @@ export class QtiTextEntryInteraction extends Interaction {
 
   static override get styles() {
     return [
-      resetCss,
       css`
-        /* PK: display host as block, else design will be collapsed */
         :host {
-          display: inline-block;
+          display: inline-flex;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
         }
-        input {
-          padding: var(--qti-padding, 0.5rem);
+        [part='correct'] {
+          position: absolute;
+          width: 100%;
         }
       `
     ];
   }
 
-  override render() {
-    return html` <input
-      part="input"
-      spellcheck="false"
-      autocomplete="off"
-      @keydown="${event => event.stopImmediatePropagation()}"
-      @keyup="${this.textChanged}"
-      @change="${this.textChanged}"
-      type="text"
-      placeholder="${ifDefined(this.placeholderText ? this.placeholderText : undefined)}"
-      .value="${this._value}"
-      size="${ifDefined(this.expectedLength ? this.expectedLength : undefined)}"
-      pattern="${ifDefined(this.patternMask ? this.patternMask : undefined)}"
-      ?disabled="${this.disabled}"
-      ?readonly="${this.readonly}"
-    />`;
+  set correctResponse(value: string) {
+    this._correctValue = value;
   }
+
+  override render() {
+    return html`
+      <div part="correct">${this._correctValue}</div>
+      <input
+        part="input"
+        spellcheck="false"
+        autocomplete="off"
+        @keydown="${event => event.stopImmediatePropagation()}"
+        @keyup="${this.textChanged}"
+        @change="${this.textChanged}"
+        type="${this.patternMask == '[0-9]*' ? 'number' : 'text'}"
+        placeholder="${ifDefined(this.placeholderText ? this.placeholderText : undefined)}"
+        .value="${this._value}"
+        size="${this._size}"
+        pattern="${ifDefined(this.patternMask ? this.patternMask : undefined)}"
+        ?disabled="${this.disabled}"
+        ?readonly="${this.readonly}"
+      />
+    `;
+  }
+  //
   // maxlength="${ifDefined(this.expectedLength ? this.expectedLength : undefined)}"
 
   protected textChanged(event: Event) {

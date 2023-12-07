@@ -1,28 +1,8 @@
-import '../src/styles.css';
 import type { Preview } from '@storybook/web-components';
-import { withThemeByClassName } from '@storybook/addon-styling';
-
 import { setCustomElementsManifest } from '@storybook/web-components';
 import customElements from '../custom-elements.json';
+import '../src/item.css';
 setCustomElementsManifest(customElements);
-
-import { withTests } from '@storybook/addon-jest';
-import results from '../.jest-test-results.json';
-
-export const decorators = [
-  // withTests({
-  //   results,
-  // }),
-  withThemeByClassName({
-    themes: {
-      vanilla: '',
-      ims: 'qti-theme-ims',
-      subtle: 'qti-theme-subtle',
-      raised: 'qti-theme-raised'
-    },
-    defaultTheme: 'vanilla'
-  })
-];
 
 const preview: Preview = {
   globalTypes: {

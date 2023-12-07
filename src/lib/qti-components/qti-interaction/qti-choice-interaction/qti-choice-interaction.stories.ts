@@ -2,12 +2,14 @@ import { action } from '@storybook/addon-actions';
 import { html } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
-import { expect } from '@storybook/jest';
-import { userEvent, within } from '@storybook/testing-library';
+// import { expect } from '@storybook/jest';
+import { within } from '@storybook/testing-library';
 
 import type { Meta, StoryObj } from '@storybook/web-components';
 
-import '../../index';
+import '@citolab/qti-components/qti-components';
+
+import { QtiChoiceInteraction } from '../../index';
 
 type Story = StoryObj; // <Props>;
 
@@ -39,13 +41,17 @@ const meta: Meta = {
     shuffle: { control: { type: 'boolean' } },
     'data-max-selections-message': { description: 'unsupported', table: { category: 'QTI' } },
     'data-min-selections-message': { description: 'unsupported', table: { category: 'QTI' } }
+  },
+  parameters: {
+    jest: ['qti-choice-interaction.test.ts']
   }
 };
 export default meta;
 
-export const Interaction = {
+export const Default = {
   render: args => {
     return html` <qti-choice-interaction
+      data-testid="qti-choice-interaction"
       data-max-selections-message="Too little selections made"
       data-min-selections-message="Too much selections made"
       response-identifier=${args['response-identifier']}
@@ -58,41 +64,78 @@ export const Interaction = {
       ?shuffle=${args.shuffle}
       ?readonly=${args.readonly}
       .disabled=${args.disabled}
-      >${'\n'}${[
-        {text: 'I think you can use WorkFlow.',fixed:false},
-        {text: 'Fixed! You should use FlowChart',fixed:true},
-        {text: 'No you should use Workload Rage.',fixed:false},
-        {text: 'I would recommend Chart Up.',fixed:false}
+      ><qti-prompt>
+        <p>Which of the following features are <strong>new</strong> to QTI 3?</p>
+        <p>Pick 1 choice.</p></qti-prompt
+      >
+      ${'\n'}${[
+        'I think you can use WorkFlow.',
+        'You should use FlowChart',
+        'No you should use Workload Rage.',
+        'I would recommend Chart Up.'
       ].map(
         (item, index) =>
-          html` <qti-simple-choice ?fixed=${item.fixed} data-testid="choice-${index}" identifier="choice-${index}">${item.text}</qti-simple-choice
+          html` <qti-simple-choice ?fixed=${item.fixed} data-testid="choice-${index}" identifier="choice-${index}"
+              >${item.text}</qti-simple-choice
             >${'\n'}`
       )}</qti-choice-interaction
     >`;
-  },
-  play: ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    //   // 👇 Simulate interactions with the component
-    //   // See https://storybook.js.org/docs/react/essentials/actions#automatically-matching-args to learn how to setup logging in the Actions panel
-    userEvent.click(canvas.getByTestId('choice-2'));
-    // //   // 👇 Assert DOM structure
-    expect(canvas.getByTestId('choice-2').getAttribute('aria-checked')).toBeTruthy();
   }
+  // play: ({ canvasElement }) => {
+  //   const canvas = within(canvasElement);
+  //   //   // 👇 Simulate interactions with the component
+  //   //   // See https://storybook.js.org/docs/react/essentials/actions#automatically-matching-args to learn how to setup logging in the Actions panel
+  //   userEvent.click(canvas.getByTestId('choice-2'));
+  //   // //   // 👇 Assert DOM structure
+  //   expect(canvas.getByTestId('choice-2').getAttribute('aria-checked')).toBeTruthy();
+  // }
 };
 
 export const Simple: Story = {
-  render: Interaction.render,
+  render: Default.render,
   args: {
     orientation: 'vertical',
     classes: ['qti-input-control-hidden', 'qti-choices-stacking-2']
   }
 };
 
-// export const PercentageImplemented = {
-//   render: ({ args }, { argTypes }) =>
-//     html`<progress id="file" max=${Object.keys(argTypes).length} value="3">70%</progress> ${JSON.stringify(
-//         argTypes,
-//         null,
-//         4
-//       )}`
-// };
+export const Multiple: Story = {
+  render: Default.render,
+  args: {
+    orientation: 'vertical',
+    classes: ['qti-choices-stacking-2'],
+    'min-choices': 1,
+    'max-choices': 2
+  }
+};
+
+export const CorrectResponse: Story = {
+  render: Default.render,
+  args: {
+    orientation: 'vertical',
+    classes: ['qti-input-control-hidden', 'qti-choices-stacking-2'],
+    'min-choices': 1,
+    'max-choices': 2
+  },
+  play: ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const el = canvas.getByTestId('qti-choice-interaction') as QtiChoiceInteraction;
+    el.correctResponse = ['choice-1', 'choice-2'];
+  }
+};
+
+export const ContentEditable = {
+  render: () => {
+    return html`
+      <div contenteditable="true">
+        <qti-choice-interaction response-identifier="RESPONSE">
+          <qti-prompt>Can you start editting one of these simplechoices</qti-prompt>
+          <qti-simple-choice identifier="choice-1"> I think you can use WorkFlow. </qti-simple-choice>
+          <qti-simple-choice identifier="choice-2"><br /></qti-simple-choice>
+          <qti-simple-choice identifier="choice-3"> No you should use Workload Rage. </qti-simple-choice>
+          <qti-simple-choice identifier="choice-4"><br /></qti-simple-choice>
+        </qti-choice-interaction>
+      </div>
+    `;
+  }
+};

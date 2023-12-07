@@ -1,35 +1,34 @@
-export * from './qti-utilities/ExpressionResult';
-
 /* only exported to override or extend for specific purposes */
-export * from './qti-utilities/EventTypes';
-export * from './qti-utilities/EventStrings';
-export * from './qti-utilities/ResponseVariable';
-export * from './qti-utilities/OutcomeVariable';
-
+export * from './internal/event-types';
+export * from './internal/events';
+export * from './internal/expression-result';
+export * from './internal/variables';
 /* only exported to override or extend for specific purposes */
 export * from './qti-assessment-item/qti-assessment-item';
-export * from './qti-stylesheet/qti-stylesheet';
+export * from './qti-interaction/internal/choice/qti-choice';
 export * from './qti-item-body/qti-item-body';
 export * from './qti-prompt/qti-prompt';
-export * from './qti-interaction/internal/choice/qti-choice';
+export * from './qti-stylesheet/qti-stylesheet';
 
 /* start response and outcome */
-export * from './qti-variabledeclaration/qti-responsedeclaration/qti-responsedeclaration';
-export * from './qti-variabledeclaration/qti-outcomedeclaration/qti-outcomedeclaration';
+export * from './qti-variable-declaration/qti-outcome-declaration/qti-outcome-declaration';
+export * from './qti-variable-declaration/qti-response-declaration/qti-response-declaration';
 /* end response and outcome */
 
 export * from './qti-companion-materials-info/qti-companion-materials-info';
-export * from './qti-rubric-block/qti-rubric-block';
 export * from './qti-rubric-block/qti-content-body';
+export * from './qti-rubric-block/qti-rubric-block';
 
 /* start feedback */
+export * from './qti-feedback/qti-feedback-block/qti-feedback-block';
 export * from './qti-feedback/qti-feedback-inline/qti-feedback-inline';
 export * from './qti-feedback/qti-modal-feedback/qti-modal-feedback';
+
 /* end feedback */
 
 /* start textentryinteraction */
-export * from './qti-interaction/qti-text-entry-interaction/qti-text-entry-interaction';
 export * from './qti-interaction/qti-extended-text-interaction/qti-extended-text-interaction';
+export * from './qti-interaction/qti-text-entry-interaction/qti-text-entry-interaction';
 
 /* end textentryinteraction */
 
@@ -45,7 +44,7 @@ export * from './qti-interaction/qti-inline-choice-interaction/qti-inline-choice
 export * from './qti-interaction/qti-choice-interaction/qti-choice-interaction';
 /* end choiceinteraction */
 
-export * from './qti-responseprocessing';
+export * from './qti-response-processing';
 
 /* start custom interactions */
 export * from './qti-interaction/qti-portable-custom-interaction/qti-portable-custom-interaction';
@@ -76,14 +75,31 @@ export * from './qti-interaction/qti-position-object-interaction/qti-position-ob
 export * from './qti-interaction/qti-select-point-interaction/qti-select-point-interaction';
 
 export * from './qti-interaction/qti-slider-interaction/qti-slider-interaction';
+
+export * from './qti-interaction/qti-end-attempt-interaction/qti-end-attempt-interaction';
+
 /* end only preview items */
 
+export * from './qti-interaction/internal/interaction/interaction';
 export * from './qti-interaction/qti-associable-hotspot';
+export * from './qti-interaction/qti-gap';
 export * from './qti-interaction/qti-gap-img';
 export * from './qti-interaction/qti-gap-text';
-export * from './qti-interaction/qti-gap';
 export * from './qti-interaction/qti-hotspot-choice';
 export * from './qti-interaction/qti-hottext';
 export * from './qti-interaction/qti-inline-choice';
 export * from './qti-interaction/qti-simple-associable-choice';
 export * from './qti-interaction/qti-simple-choice';
+
+export * from './qti-assessment-item/qti-assessment-item.context';
+
+export * from './qti-custom-operator/qti-custom-operator';
+
+console.log(
+  '%cC¿TO%cLab%c: qti-components loaded',
+  'font-weight:bold; color:green',
+  'font-family: "PT Sans", font-weight:bold; color:green; font-size: smaller;vertical-align: sub',
+  'font-weight:unset'
+);
+
+// css for font pt-sans and subscript and green

@@ -1,97 +1,155 @@
 import chalk from 'chalk';
 import { execSync } from 'child_process';
+import { existsSync, promises as fsPromises } from 'fs';
 import tsup, { Options } from 'tsup';
-import { sassPlugin } from 'esbuild-sass-plugin';
 import { InlineCSSPlugin } from './inline-css-plugin.js';
-import fs from 'fs';
-import path from 'path';
+
+const command = process.argv[2];
+const buildType = command === 'watch' ? 'watch' : 'build';
 
 console.log('Building the project...');
 
 const outdir = 'dist';
+
+import pkgJson from '../package.json' assert { type: 'json' };
+
+const peerdependencies: string[] = [];
+for (const property in pkgJson.peerdependencies) {
+  peerdependencies.push(property);
+}
+
+// ---- the options ----
+
+const options = {
+  clean: false,
+  target: 'es2017',
+  dts: true,
+  format: ['esm'],
+  entryPoints: [
+    // NOTE: Entry points must be mapped in package.json > exports, otherwise users won't be able to import them!
+    './src/lib/qti-components/index.ts',
+    './src/lib/qti-transformers/index.ts'
+  ],
+  // external: peerdependencies, // ['@lit/react', '@lit/context', 'react', 'lit'],
+  splitting: true,
+  esbuildPlugins: [InlineCSSPlugin],
+  outDir: 'dist'
+} as Options;
+
+export const watchOptions = {
+  ...options,
+  clean: true,
+  sourcemap: 'inline',
+  define: {
+    'process.env.NODE_ENV': '"development"',
+    DEBUG: 'true'
+  }
+} as Options;
+
+export const buildOptions = {
+  ...options,
+  format: [...options.format!, 'cjs'],
+  minify: true,
+  bundle: true,
+  pure: ['console.log'],
+  define: {
+    'process.env.NODE_ENV': '"production"'
+  }
+} as Options;
+
+export const debugOptions = {
+  ...options,
+  pure: [],
+  bundle: true,
+  define: {
+    'process.env.NODE_ENV': '"production"',
+    DEBUG: 'true'
+  },
+  outDir: 'dist/debug'
+} as Options;
+
+// Make a build purely for enjoying creating qti-items in a plain HTML file
+export const completeOptions = {
+  ...options,
+  dts: false,
+  external: [],
+  noExternal: [/(.*)/],
+  splitting: false,
+  sourcemap: false,
+  minify: true,
+  bundle: true,
+  entryPoints: ['./src/index.ts'],
+  pure: ['console.log'],
+  define: {
+    'process.env.NODE_ENV': '"production"'
+  }
+} as Options;
+
+// ---- the build ----
+
 (async () => {
   try {
-    console.log('Generating component metadata');
-    execSync(`cem analyze --litelement --outdir "dist"`, { stdio: 'inherit' });
-
-    execSync(`ts-node --esm --project tsconfig.node.json scripts/make-css.ts --outdir "${outdir}"`, {
-      stdio: 'inherit'
-    });
-
-    // execSync(`tsup`, { stdio: "inherit" });
+    // make sure the folder is clean
+    if (existsSync(outdir)) {
+      await fsPromises.rm(outdir, { recursive: true });
+    }
+    await fsPromises.mkdir(outdir);
   } catch (err) {
     console.error(chalk.red(err));
     process.exit(1);
   }
 
-  const buildResult = await tsup
-    .build({
-      target: 'es2017',
-      dts: true,
-      format: ['esm'],
-      minify: true,
-      entryPoints: [
-        //
-        // NOTE: Entry points must be mapped in package.json > exports, otherwise users won't be able to import them!
-        //
-        // qti-components
-        './src/lib/qti-components/index.ts',
-        // qti-item
-        './src/lib/qti-item/index.ts',
-        // qti-item-react
-        './src/lib/qti-item-react/index.ts',
-        // qti-test
-        './src/lib/qti-test/index.ts',
-        // qti-transform
-        './src/lib/qti-transform/index.ts'
-      ],
-      define: {
-        'process.env.NODE_ENV': '"production"'
-      },
-      bundle: true,
-      external: ['@lit-labs/react', '@lit-labs/context', 'react', 'lit'],
-      splitting: true,
-      // https://github.com/evanw/esbuild/issues/3109#issuecomment-1539846087
-      // https://esbuild.github.io/plugins/#using-plugins
-      esbuildPlugins: [InlineCSSPlugin]
-      // esbuildOptions(options, context) {
-      //   options.css
-      // },
-    })
+  switch (buildType) {
+    case 'watch':
+      {
+        await buildTS(watchOptions);
+        buildCSS();
+      }
+      break;
+    case 'build':
+      {
+        await buildTS(buildOptions);
+        await buildTS(debugOptions);
+        await buildTS(completeOptions);
+        buildCEM();
+        buildCSS();
+      }
+      break;
+    default:
+      break;
+  }
+})();
+
+function buildCSS() {
+  try {
+    execSync(`ts-node --esm --project tsconfig.node.json scripts/make-css.ts --outdir "${outdir}"`, {
+      stdio: 'inherit'
+    });
+  } catch (err) {
+    console.error(chalk.red(err));
+    process.exit(1);
+  }
+}
+
+function buildCEM() {
+  try {
+    console.log('Generating component metadata');
+    execSync(`cem analyze --litelement --outdir "dist"`, { stdio: 'inherit' });
+  } catch (err) {
+    console.error(chalk.red(err));
+    process.exit(1);
+  }
+}
+
+async function buildTS(options: Options) {
+  return tsup
+    .build(options)
     .catch(err => {
       console.error(chalk.red(err));
       process.exit(1);
     })
-    .then(result => console.log(result));
-
-  console.log(chalk.green(`qti-components has been generated at ${outdir}\n`));
-})();
-
-// Make a build purely for enjoying creating qti-items in a plain HTML file
-(async () => {
-  const buildResult = await tsup
-    .build({
-      target: 'es2017',
-      format: ['esm'],
-      entryPoints: { './index': './src/index.ts' },
-      minify: true,
-      bundle: true,
-      // necessary so the peerdependencies in the package.json will still be included in thuis build
-      // https://github.com/egoist/tsup/issues/619#issuecomment-1420423401
-      noExternal: [/(.*)/],
-      esbuildPlugins: [
-        // sassPlugin({
-        //   filter: /.*\?inline$/,
-        //   type: 'css-text'
-        // }),
-        InlineCSSPlugin
-      ]
-    })
-    .catch(err => {
-      console.error(chalk.red(err));
-      process.exit(1);
-    })
-    .then(result => console.log(result));
-
-  console.log(chalk.green(`The build has been generated at ${outdir}\n`));
-})();
+    .then(result => {
+      console.log(result);
+      console.log(chalk.green(`qti-components has been generated at ${outdir}\n`));
+    });
+}

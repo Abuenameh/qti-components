@@ -1,10 +1,9 @@
 import { css, html } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { Interaction } from '../internal/interaction/interaction';
-import { resetCss } from '../../utilities/reset-styles/reset-shadowroot-styles';
 import { ref, createRef } from 'lit/directives/ref.js';
 import { customElement, property, state } from 'lit/decorators.js';
-import { watch } from '../../utilities/decorators/watch';
+import { watch } from '../../../decorators/watch';
 
 @customElement('qti-extended-text-interaction')
 export class QtiExtendedTextInteraction extends Interaction {
@@ -47,16 +46,16 @@ export class QtiExtendedTextInteraction extends Interaction {
 
   static override get styles() {
     return [
-      resetCss,
       css`
         /* PK: display host as block, else design will be collapsed */
         :host {
           display: block;
         }
         textarea {
-          padding: var(--qti-padding, 0.5rem);
+          box-sizing: border-box;
           width: 100%;
           height: 100%;
+          border: 0;
         }
       `
     ];

@@ -1,4 +1,8 @@
+import '@citolab/qti-components/qti-components';
+import { describe, expect, it } from '@jest/globals';
 import crypto from 'crypto';
+import { render } from 'lit';
+import { Default } from './qti-choice-interaction.stories';
 
 // FIXME: Check if this is still needed, only when using choice this should be available
 Object.defineProperty(global, 'crypto', {
@@ -6,12 +10,6 @@ Object.defineProperty(global, 'crypto', {
     getRandomValues: (arr: any) => crypto.randomBytes(arr.length)
   }
 });
-
-import '../qti-simple-choice';
-import './qti-choice-interaction';
-import { describe, expect, it } from '@jest/globals';
-import { Interaction } from './qti-choice-interaction.stories';
-import { render } from 'lit';
 
 const getQtiSimpleChoices = () => Array.from(document.body.querySelectorAll('qti-simple-choice'));
 const getQtiChoiceInteraction = () => document.body.querySelector('qti-choice-interaction');
@@ -21,7 +19,7 @@ describe('qti-choice-interaction', () => {
 
   describe('maxChoices0', () => {
     beforeEach(async () => {
-      render(Interaction.render({ 'max-choices': 3, 'min-choices': 2 }), document.body);
+      render(Default.render({ 'max-choices': 3, 'min-choices': 2 }), document.body);
     });
 
     it('should validate because min-choices is 0', () => {
@@ -38,7 +36,7 @@ describe('qti-choice-interaction', () => {
 
   describe('maxChoices1', () => {
     beforeEach(async () => {
-      render(Interaction.render({ 'max-choices': 1, 'min-choices': 1 }), document.body);
+      render(Default.render({ 'max-choices': 1, 'min-choices': 1 }), document.body);
     });
 
     it('should not validate because min-choices is 1', () => {
@@ -53,7 +51,7 @@ describe('qti-choice-interaction', () => {
 
   describe('maxChoices2', () => {
     beforeEach(() => {
-      render(Interaction.render({ maxChoices: 1, minChoices: 1 }), document.body);
+      render(Default.render({ maxChoices: 1, minChoices: 1 }), document.body);
     });
 
     it('should dispatch qti-interaction-response when clicked', () => {

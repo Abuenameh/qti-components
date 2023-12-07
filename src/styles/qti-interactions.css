@@ -12,6 +12,20 @@ qti-choice-interaction {
       @apply check hover:hov focus:foc aria-checked:act aria-readonly:rdo aria-disabled:dis;
     }
   }
+
+  qti-simple-choice {
+    &[data-correct-response='true'] {
+      &::after {
+        content: '\02714';
+        @apply text-green-600;
+      }
+      /* @apply bg-green-100 text-green-600; */
+    }
+  }
+
+  qti-simple-choice > p {
+    @apply m-0 p-0;
+  }
 }
 
 qti-text-entry-interaction {
@@ -100,7 +114,7 @@ qti-hottext-interaction {
 
 qti-inline-choice-interaction {
   &::part(select) {
-    @apply select hover:hov focus:foc aria-checked:act aria-readonly:rdo aria-disabled:dis;
+    @apply select hover:hov focus:foc; /* aria-checked:act aria-readonly:rdo aria-disabled:dis; */
   }
 }
 
@@ -161,7 +175,7 @@ qti-associate-interaction {
     background: linear-gradient(
       180deg,
       rgb(0 0 0 / 0%) calc(50% - 1px),
-      #ff0000 calc(50%),
+      #000000 calc(50%),
       rgb(0 0 0 / 0%) calc(50% + 1px)
     );
   }
@@ -220,29 +234,56 @@ qti-graphic-gap-match-interaction {
 }
 
 qti-slider-interaction {
-  @apply relative;
-  width: 100%;
-  display: block;
-  &::part(knob) {
-    @apply absolute h-4 w-4 origin-center -translate-x-1/2 cursor-pointer rounded-full bg-primary-500;
+  @apply block; /* else no screenshot will be made with html-to-image */
+
+  /* @apply hover:hov focus:foc aria-checked:act aria-readonly:rdo aria-disabled:dis; */
+
+  --qti-tick-color: rgb(229 231 235 / 1);
+  --qti-tick-width: 1px;
+
+  &::part(slider) {
+    @apply mx-8; /* so the slider stays INSIDE of the qti-slider-interaction */
+    @apply pb-4 pt-5; /* this keeps all content in the qti-slider interaction, also for html-to-image */
+  }
+
+  --show-bounds: true;
+  &::part(bounds) {
+    @apply flex w-full justify-between; /* the two divs with value lower and upper will now be at start and end of this bounds container */
+    @apply mb-2; /* just so it aligns with the value 'knob' */
+  }
+
+  --show-ticks: true;
+  &::part(ticks) {
+    @apply mx-0.5 mb-1 h-2; /* absolute height for the ticks, and keep distance of the rail. push them 0.5 inward */
+    background-position: 0 center;
+    background: linear-gradient(to right, var(--qti-tick-color) var(--qti-tick-width), transparent 1px) repeat-x;
+    background-size: calc(calc(100% - var(--qti-tick-width)) / ((var(--max) - var(--min)) / var(--step))) 100%;
   }
 
   &::part(rail) {
-    @apply h-4;
-    background-position: 0 center;
-    --qti-border-color: #ff0000;
-    --qti-border-width: 2px;
-    /* ticks */
-    background: linear-gradient(to right, var(--qti-border-color) var(--qti-border-width), transparent 1px) repeat-x,
-      linear-gradient(to top, var(--qti-border-color) var(--qti-border-width), transparent 1px) repeat-x;
-    background-size: calc(calc(100% - var(--qti-border-width)) / ((var(--max) - var(--min)) / var(--step))) 50%;
+    @apply flex items-center; /* so the knob is neatly centered vertically */
+    /* DESIGN */
+    @apply box-border; /* if you have a border in the design apply, this box-border will make the border stay INSIDE the rail */
+    @apply h-1.5 w-full cursor-pointer rounded-full border border-solid border-gray-300 bg-gray-200;
+  }
+
+  &::part(knob) {
+    @apply relative h-4 w-4 origin-center -translate-x-1/2 cursor-pointer rounded-full bg-primary-500;
+    left: var(--value-percentage);
+  }
+
+  --show-value: true;
+  &::part(value) {
+    @apply absolute bottom-8; /* align the value, which you can drag, on top of the knob, so it aligns with the rest of the values */
+    @apply left-2; /* should be half width of the knob if you want to center these two */
+    @apply -translate-x-1/2 cursor-pointer rounded bg-gray-100 px-2 py-1 text-center text-gray-500;
   }
 }
 
 qti-select-point-interaction {
   &::part(point) {
     @apply hover:bg-blue-100 hover:bg-opacity-30;
-    @apply point hover:hov-ring focus:foc aria-checked:act aria-readonly:rdo aria-disabled:dis rounded-full;
+    @apply point hover:hov-ring focus:foc rounded-full; /* aria-checked:act aria-readonly:rdo aria-disabled:dis ;*/
   }
 }
 
@@ -251,4 +292,8 @@ qti-position-object-stage {
     /* no styles necessary, only layout styles, defined in the component */
     /* height: 40px; */
   }
+}
+
+qti-prompt {
+  @apply my-2 block w-full;
 }

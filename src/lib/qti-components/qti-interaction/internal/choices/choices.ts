@@ -1,4 +1,4 @@
-import { watch } from '../../../utilities/decorators/watch';
+import { watch } from '../../../../decorators/watch';
 import { Interaction } from '../interaction/interaction';
 import { property, state } from 'lit/decorators.js';
 import { QtiChoice } from '../choice/qti-choice';
@@ -65,12 +65,6 @@ export abstract class Choices extends Interaction {
     this.addEventListener('qti-loose-choice', this._looseChoiceElement);
   }
 
-  reset(): void {
-    this._choiceElements.forEach(choiceElement => {
-      choiceElement.reset();
-    });
-  }
-
   validate(): boolean {
     const nrSelected = this._choiceElements.reduce((acc, val) => {
       return acc + (val.checked ? 1 : 0);
@@ -78,17 +72,23 @@ export abstract class Choices extends Interaction {
     return nrSelected >= this.minChoices;
   }
 
-  set response(myResponse: ResponseType) {
-    // reset all boxes
+  set response(responseValue: string | string[]) {
+    const responseValueArray = Array.isArray(responseValue) ? responseValue : [responseValue];
     this._choiceElements.forEach(ce => {
-      ce.checked = false;
+      ce.checked = responseValueArray.find(rv => rv === ce.identifier) ? true : false;
     });
-    const response = Array.isArray(myResponse) ? myResponse : [myResponse];
-    response.forEach((val: string) => {
-      const choicebox = this.querySelector(`[identifier='${val}']`)!;
-      if (choicebox) {
-        (choicebox as QtiChoice).checked = true;
-      }
+  }
+
+  set correctResponse(responseValue: string | string[]) {
+    const responseValueArray = Array.isArray(responseValue) ? responseValue : [responseValue];
+    if (responseValue == '') {
+      this._choiceElements.forEach(ce => {
+        ce.removeAttribute('data-correct-response');
+      });
+      return;
+    }
+    this._choiceElements.forEach(ce => {
+      ce.setAttribute('data-correct-response', responseValueArray.find(rv => rv === ce.identifier) ? 'true' : 'false');
     });
   }
 
@@ -132,7 +132,7 @@ export abstract class Choices extends Interaction {
     }
   }
 
-  private _choiceElementSelectedHandler(event: CustomEvent<{ identifier: string; checked: boolean }>) {
+  protected _choiceElementSelectedHandler(event: CustomEvent<{ identifier: string; checked: boolean }>) {
     if (this.maxChoices === 1) {
       this._choiceElements
         .filter(ce => ce.identifier !== event.detail.identifier)
@@ -143,7 +143,7 @@ export abstract class Choices extends Interaction {
     this._choiceElementSelected();
   }
 
-  private _choiceElementSelected() {
+  protected _choiceElementSelected() {
     const selectedIdentifiers = this._choiceElements.filter(ce => ce.checked).map(ce => ce.identifier);
 
     if (this.maxChoices > 1) {

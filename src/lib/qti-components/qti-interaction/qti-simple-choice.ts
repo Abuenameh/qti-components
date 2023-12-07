@@ -1,5 +1,5 @@
 import { customElement } from 'lit/decorators.js';
-import { CSSResultGroup, html } from 'lit';
+import { CSSResultGroup, css, html } from 'lit';
 import { QtiChoice } from './internal/choice/qti-choice';
 
 /**
@@ -15,10 +15,20 @@ import { QtiChoice } from './internal/choice/qti-choice';
  * @slot - The default slot.
  */
 @customElement('qti-simple-choice')
-export default class QtiSimpleChoice extends QtiChoice {
+export class QtiSimpleChoice extends QtiChoice {
+  static styles = css`
+    :host {
+      display: flex;
+    }
+    slot {
+      width: 100%;
+      display: block;
+    }
+  `;
+
   override render() {
     return html`<div part="ch"><div part="cha"></div></div>
-      <slot></slot> `;
+      <slot part="slot"></slot> `;
   }
 }
 

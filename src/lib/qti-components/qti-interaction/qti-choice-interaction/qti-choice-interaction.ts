@@ -8,7 +8,7 @@ import { Choices } from '../internal/choices/choices';
  * @summary The ChoiceInteraction.Type (qti-choice-interaction) interaction presents a collection of choices to the candidate.
  * @documentation https://www.imsglobal.org/spec/qti/v3p0/impl#h.j9nu1oa1tu3b
  * @status stable
- * @since 4.0
+ * @since 6.0
  *
  * @event qti-register-interaction - emitted when the interaction wants to register itself
  * @event qti-interaction-response - emitted when the interaction changes
@@ -18,14 +18,16 @@ import { Choices } from '../internal/choices/choices';
  */
 
 @customElement('qti-choice-interaction')
-export default class QtiChoiceInteraction extends Choices {
+export class QtiChoiceInteraction extends Choices {
   static styles: CSSResultGroup = styles;
 
   /** orientation of choices */
   @property({ type: String })
   public orientation: 'horizontal' | 'vertical';
 
-  override render = () => html` <slot name="prompt"></slot><slot></slot>`;
+  render() {
+    return html` <slot name="prompt"></slot><slot part="slot"></slot>`;
+  }
 }
 
 declare global {

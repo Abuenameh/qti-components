@@ -1,6 +1,6 @@
 import { css, html } from 'lit';
-import { resetCss } from '../../utilities/reset-styles/reset-shadowroot-styles';
-import { Events } from '../../qti-utilities/EventStrings';
+import { property, state } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { Interaction } from '../internal/interaction/interaction';
 
 interface OptionType {
@@ -9,8 +9,6 @@ interface OptionType {
   selected: boolean;
 }
 export class QtiInlineChoiceInteraction extends Interaction {
-  options: OptionType[] = [];
-
   public static inputWidthClass = [
     '',
     'qti-input-width-2',
@@ -24,26 +22,15 @@ export class QtiInlineChoiceInteraction extends Interaction {
     'qti-input-width-72'
   ];
 
-  static override get properties() {
-    return {
-      ...Interaction.properties,
-      ...{
-        options: {
-          type: Array,
-          value: [],
-          attribute: false
-        }
-      }
-    };
-  }
+  @state() options: OptionType[] = [];
 
-  override connectedCallback() {
-    super.connectedCallback();
-  }
+  @state() correctOption: string = '';
+
+  @property({ attribute: 'data-prompt', type: String })
+  dataPrompt: string = 'select';
 
   static override get styles() {
     return [
-      resetCss,
       css`
         :host {
           display: inline-block;
@@ -53,26 +40,26 @@ export class QtiInlineChoiceInteraction extends Interaction {
   }
 
   override render() {
-    return html` <select
-      part="select"
-      @change="${this.choiceSelected}"
-      ?disabled="${this.disabled}"
-      ?readonly="${this.readonly}"
-    >
-      ${this.options.map(
-        option => html` <option value="${option.value}" ?selected="${option.selected}">${option.textContent}</option> `
-      )}
-    </select>`;
+    return html`
+      <select part="select" @change="${this.choiceSelected}" ?disabled="${this.disabled}" ?readonly="${this.readonly}">
+        ${this.options.map(
+          option => html`
+            <option value="${option.value}" ?selected="${option.selected}">${unsafeHTML(option.textContent)}</option>
+          `
+        )}
+      </select>
+
+      ${unsafeHTML(this.correctOption)}
+    `;
   }
 
-  constructor() {
-    super();
-    this.addEventListener(Events.ON_DROPDOWN_SELECTED, this.choiceSelected);
+  connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener('on-dropdown-selected', this.choiceSelected);
     const choices = Array.from(this.querySelectorAll('qti-inline-choice'));
-
     this.options = [
       {
-        textContent: 'select',
+        textContent: this.dataPrompt,
         value: '',
         selected: false
       },
@@ -82,6 +69,10 @@ export class QtiInlineChoiceInteraction extends Interaction {
         selected: false
       }))
     ];
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener('on-dropdown-selected', this.choiceSelected);
   }
 
   public validate(): boolean {
@@ -98,6 +89,16 @@ export class QtiInlineChoiceInteraction extends Interaction {
       value === option.value && (option.selected = true);
       return option;
     });
+  }
+
+  set correctResponse(value: Readonly<string | string[]>) {
+    if (value === '') {
+      this.correctOption = '';
+      return;
+    }
+    this.correctOption = `<span part="correct-option">${
+      this.options.find(option => value === option.value).textContent
+    }</span>`;
   }
 
   public choiceSelected(event: Event) {

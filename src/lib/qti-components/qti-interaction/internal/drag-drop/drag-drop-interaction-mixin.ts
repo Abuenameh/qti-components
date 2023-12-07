@@ -5,8 +5,8 @@ import { IInteraction } from '../interaction/interaction.interface';
 
 import { TouchDragAndDrop } from './drag-drop-api';
 import { property } from 'lit/decorators.js';
-import { watch } from '../../../utilities/decorators/watch';
-import { liveQuery } from '../../../utilities/decorators/liveQuery';
+import { watch } from '../../../../decorators/watch';
+import { liveQuery } from '../../../../decorators/live-query';
 // keyboard navigatable drag drop: https://codepen.io/SitePoint/pen/vEzXbj
 // https://stackoverflow.com/questions/55242196/typescript-allows-to-use-proper-multiple-inheritance-with-mixins-but-fails-to-c
 // https://github.com/microsoft/TypeScript/issues/17744#issuecomment-558990381
@@ -61,8 +61,9 @@ export const DragDropInteractionMixin = <T extends Constructor<LitElement>>(
             ev.preventDefault();
             elem.removeAttribute('over');
             elem.removeAttribute('dragging');
+
             // pk: if not dropped on a drop location put it back where it belongs
-            if (ev.dataTransfer.dropEffect === 'none') {
+            if (ev.dataTransfer.dropEffect === 'none' || ev.dataTransfer.dropEffect === undefined) {
               if (this.configuration.dragCanBePlacedBack) {
                 const draggable = ev.currentTarget as HTMLElement;
                 const position = this.draggables.get(draggable);
@@ -212,16 +213,14 @@ export const DragDropInteractionMixin = <T extends Constructor<LitElement>>(
         return responseString;
       });
 
-      // const value = { list: { pair: response } };
-
       this.dispatchEvent(
         new CustomEvent('qti-interaction-response', {
           bubbles: true,
           composed: true,
           detail: {
             responseIdentifier: this.responseIdentifier,
-            response,
-          },
+            response
+          }
         })
       );
     }
