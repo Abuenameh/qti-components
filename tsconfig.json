@@ -30,6 +30,6 @@
       "@citolab/qti-components/qti-components": ["src/lib/qti-components"]
     }
   },
-  "include": ["src/**/*.ts", "./jest.config.ts"],
+  "include": ["src/**/*.ts","tests/**/*.ts", "./jest.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
