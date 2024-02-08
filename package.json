@@ -10,15 +10,16 @@
   "license": "GPLv3",
   "private": false,
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=20.0.0"
   },
-  "version": "6.7.1-17",
+  "version": "6.7.1-25",
   "type": "module",
   "exports": {
     "./qti-components": "./dist/qti-components/index.js",
     "./qti-transformers": "./dist/qti-transformers/index.js",
     "./item.css": "./dist/item.css",
-    "./item.minimal.css": "./dist/item.minimal.css"
+    "./item-normalize.css": "./dist/item-normalize.css",
+    "./item-prose.css": "./dist/item-prose.css"
   },
   "types": "./dist/qti-components/index.d.ts",
   "typesVersions": {
@@ -35,73 +36,70 @@
     "dist",
     "types",
     "./dist/item.css",
-    "./dist/item.minimal.css"
+    "./dist/item-normalize.css",
+    "./dist/item-prose.css"
   ],
   "scripts": {
-    "test": "jest",
-    "test:output": "jest --json --outputFile=.jest-test-results.json",
-    "test:watch-output": "jest --watch --json --outputFile=.jest-test-results.json || true",
-    "test-web": "web-test-runner \"tests/**/*.test.ts\" --node-resolve --watch",
-    "dev": "vite",
-    "build-app": "tsc && vite build",
+    "test": "vitest",
+    "build": "wireit",
     "build-lib": "tsx scripts/build.ts",
     "watch-lib": "nodemon --watch \"src/**\" --ext \"ts,json,css\" --ignore \"src/**/*.spec.ts\" --exec \"tsx scripts/build.ts\" watch",
-    "deploy": "firebase deploy --only hosting:qti-components",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build",
     "storybook:test": "test-storybook",
-    "npm publish": "np",
     "cem": "cem analyze --watch",
     "lint": "eslint src/lib/**",
-    "kill 6006": "sudo lsof -i :6006 | grep LISTEN | awk '{print $2}' | xargs kill",
-    "list-outdated-dependencies": "npx npm-check-updates --format repo --peer",
-    "update-dependencies": "npx npm-check-updates --peer -u && npm install",
-    "arethetypeswrong": "npm run build-lib && attw --pack",
-    "----hooks----": "",
+    "arethetypeswrong": "wireit",
+    "----hooks----": "-",
     "prepublishOnly": "echo 'calling prepublishOnly as npm lifecycle hook to build-lib!' && npm run build-lib",
     "postpublish": "echo 'posthook for prosperity, does nothing for now!'"
   },
+  "wireit": {
+    "build": {
+      "command": "tsc"
+    },
+    "arethetypeswrong": {
+      "command": "attw --pack",
+      "dependencies": [
+        "build-lib"
+      ]
+    }
+  },
   "peerDependencies": {
     "@lit/context": "^1.1.0",
-    "lit": "^3.1.0"
+    "lit": "^3.1.1"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.13.5",
     "@custom-elements-manifest/analyzer": "^0.9.0",
-    "@esm-bundle/chai": "^4.3.4-fix.0",
-    "@jest/globals": "^29.7.0",
     "@lit/context": "^1.1.0",
-    "@storybook/addon-a11y": "^7.6.9",
-    "@storybook/addon-essentials": "^7.6.9",
-    "@storybook/addon-interactions": "^7.6.9",
-    "@storybook/addon-jest": "^7.6.9",
-    "@storybook/addon-links": "^7.6.9",
-    "@storybook/blocks": "^7.6.9",
-    "@storybook/jest": "^0.2.3",
-    "@storybook/preview-api": "^7.6.9",
+    "@storybook/addon-a11y": "^7.6.13",
+    "@storybook/addon-essentials": "^7.6.13",
+    "@storybook/addon-interactions": "^7.6.13",
+    "@storybook/addon-links": "^7.6.13",
+    "@storybook/blocks": "^7.6.13",
+    "@storybook/preview-api": "^7.6.13",
+    "@storybook/test": "^7.6.13",
     "@storybook/test-runner": "^0.16.0",
-    "@storybook/testing-library": "^0.2.2",
-    "@storybook/web-components": "^7.6.9",
-    "@storybook/web-components-vite": "^7.6.9",
-    "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
-    "@tailwindcss/typography": "^0.5.10",
+    "@storybook/web-components": "^7.6.13",
+    "@storybook/web-components-vite": "^7.6.13",
     "@types/node": "^20.11.5",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@web/dev-server-esbuild": "^1.0.1",
-    "@web/test-runner": "^0.18.0",
+    "@unocss/postcss": "^0.58.5",
+    "@unocss/preset-typography": "^0.58.5",
+    "@unocss/preset-wind": "^0.58.5",
+    "@unocss/reset": "^0.58.5",
+    "@unocss/transformer-directives": "^0.58.5",
     "autoprefixer": "^10.4.17",
     "custom-element-vs-code-integration": "^1.2.1",
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jest": "^27.6.3",
     "eslint-plugin-lit": "^1.11.0",
     "eslint-plugin-lit-a11y": "^4.1.1",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-storybook": "^0.6.15",
     "eslint-plugin-wc": "^2.0.4",
-    "jest-environment-jsdom": "^29.7.0",
     "lit": "^3.1.1",
-    "lit-xml": "^0.6.0",
     "nodemon": "^3.0.3",
     "np": "^9.2.0",
     "path-browserify": "^1.0.1",
@@ -110,19 +108,21 @@
     "postcss-import": "^16.0.0",
     "postcss-nesting": "^12.0.2",
     "prettier": "3.2.4",
-    "prettier-plugin-tailwindcss": "^0.5.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "remark-gfm": "^4.0.0",
-    "storybook": "^7.6.9",
-    "tailwindcss": "^3.4.1",
-    "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.2",
+    "storybook": "^7.6.13",
     "tsup": "^8.0.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
+    "unocss": "^0.58.5",
     "vite": "^5.0.11",
-    "vite-tsconfig-paths": "^4.3.1"
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^1.2.2",
+    "wireit": "^0.14.4"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.9.6"
   },
   "customElements": "custom-elements.json"
 }

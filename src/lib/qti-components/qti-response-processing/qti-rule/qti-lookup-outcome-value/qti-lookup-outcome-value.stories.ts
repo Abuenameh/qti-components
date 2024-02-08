@@ -1,7 +1,6 @@
 import '@citolab/qti-components/qti-components';
 import { QtiAssessmentItem } from '@citolab/qti-components/qti-components';
-import { expect } from '@storybook/jest';
-import { within } from '@storybook/testing-library';
+import { expect, within } from '@storybook/test';
 import type { Meta, StoryObj } from '@storybook/web-components';
 import { html } from 'lit';
 
@@ -61,6 +60,7 @@ const meta: Meta = {
 export default meta;
 
 export const Default = {
+  args: {},
   render: args => {
     return html`${unsafeHTML(storyXML)}`;
   },
