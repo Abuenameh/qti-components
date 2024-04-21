@@ -1,7 +1,7 @@
 export interface IInteraction {
   disabled: boolean;
   readonly: boolean;
-  response: string | string[];
+  response: string | string[] | undefined;
   reset();
   validate(): boolean;
 }
