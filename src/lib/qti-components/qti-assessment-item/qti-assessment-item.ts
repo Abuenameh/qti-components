@@ -172,7 +172,7 @@ export class QtiAssessmentItem extends LitElement {
       const interaction: Interaction | undefined = this._interactionElements.find(
         i => i.getAttribute('response-identifier') === response.responseIdentifier
       );
-      interaction && (interaction.correctResponse = show ? response.response : '');
+      interaction && (interaction.response = show ? response.response : '');
     }
   }
 
