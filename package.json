@@ -1,18 +1,25 @@
 {
-  "name": "@citolab/qti-components",
-  "repository": "https://github.com/Citolab/qti-components",
+  "name": "@abuenameh/qti-components",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abuenameh/qti-components.git"
+  },
   "description": "QTI webcomponents",
   "author": "Patrick de Klein",
   "contributors": [
-    "Sander Looise",
-    "Marcel Hoekstra"
+    {
+      "name": "Sander Looise"
+    },
+    {
+      "name": "Marcel Hoekstra"
+    }
   ],
-  "license": "GPLv3",
+  "license": "GPL-3.0-or-later",
   "private": false,
   "engines": {
     "node": ">=20.0.0"
   },
-  "version": "6.7.1-29",
+  "version": "6.7.1-29-abu-0",
   "type": "module",
   "exports": {
     "./qti-components": "./dist/qti-components/index.js",
@@ -123,5 +130,10 @@
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.9.6"
   },
-  "customElements": "custom-elements.json"
+  "customElements": "custom-elements.json",
+  "main": "index.js",
+  "bugs": {
+    "url": "https://github.com/Abuenameh/qti-components/issues"
+  },
+  "homepage": "https://github.com/Abuenameh/qti-components#readme"
 }
