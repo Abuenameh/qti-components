@@ -1,16 +1,28 @@
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { Interaction } from '../internal/interaction/interaction';
 
 declare const requirejs: any;
 declare const define: any;
 
 @customElement('qti-portable-custom-interaction')
-export class QtiPortableCustomInteraction extends LitElement {
-  private responseIdentifier: string;
+export class QtiPortableCustomInteraction extends Interaction {
   private module: string;
   private customInteractionTypeIdentifier: string;
   private baseUrl: string;
   private _errorMessage: string = null;
+  private item;
+
+  private _value = '';
+
+  public set response(value: string | undefined) {
+    this._value = value !== undefined ? value : '';
+    this.item.setResponse(value);
+  }
+
+  public validate() {
+    return this._value !== '';
+  }
 
   static override get properties() {
     return {
@@ -75,10 +87,17 @@ export class QtiPortableCustomInteraction extends LitElement {
   }
 
   register(item) {
+    this.item = item;
+
     const type = this.parentElement.tagName === 'QTI-CUSTOM-INTERACTION' ? 'TAO' : 'IMS';
 
     const dom = type == 'IMS' ? this.querySelector('qti-interaction-markup') : this.querySelector('markup');
     dom.classList.add('qti-customInteraction');
+
+    dom.addEventListener('changed', (event: CustomEvent) => {
+      this._value = event.detail?.base?.string || '';
+      this.saveResponse(this._value);
+    })
 
     if (type == 'TAO' && this.querySelector('properties')) {
       (this.querySelector('properties') as HTMLElement).style.display = 'none';
