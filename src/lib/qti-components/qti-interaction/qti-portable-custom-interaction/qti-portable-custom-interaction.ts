@@ -17,7 +17,7 @@ export class QtiPortableCustomInteraction extends Interaction {
 
   public set response(value: string | undefined) {
     this._value = value !== undefined ? value : '';
-    this.item.setResponse(value);
+    this.item?.setResponse(value);
   }
 
   public validate() {
