@@ -32,15 +32,7 @@ export class QtiCustomOperator extends LitElement implements Calculate {
   }
 
   handleSlotChange(event: Event) {
-    // expecting <[!CDATA[ ... ]]> is converted into <!-- ... --> with qti-transform: cDataToComment
-    const commentNode = Array.from(this.firstElementChild?.childNodes ?? []).find(
-      node => node.nodeType === Node.COMMENT_NODE
-    );
-    try {
-      this.operatorFunction = new Function('context', 'fn', 'item', commentNode.textContent ?? '');
-    } catch (e) {
-      console.error('custom-operator contains invalid javascript code', e);
-    }
+    this.operatorFunction = new Function('context', 'fn', 'item', '');
   }
 
   public calculate() {
