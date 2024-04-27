@@ -110,8 +110,10 @@ export class QtiPortableCustomInteraction extends Interaction {
           }
         : this.getTAOConfig(this);
 
+    const state = JSON.stringify({ state: { input: this._value }, log: [] });
+
     type == 'IMS'
-      ? item.getInstance(dom, config, undefined)
+      ? item.getInstance(dom, config, state)
       : item.initialize(this.customInteractionTypeIdentifier, dom.firstElementChild, config);
 
     if (type == 'TAO') {
