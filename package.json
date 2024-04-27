@@ -19,7 +19,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "version": "6.7.1-29-abu-2",
+  "version": "6.7.1-29-abu-3",
   "type": "module",
   "exports": {
     "./qti-components": "./dist/qti-components/index.js",
