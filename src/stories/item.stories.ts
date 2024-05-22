@@ -48,14 +48,14 @@ export const Examples: Story = {
     item && (item.view = view);
 
     return html`
-      <div
+      <qti-item
         class="item"
         @qti-interaction-changed=${onInteractionChangedAction}
         @qti-outcome-changed=${onOutcomeChangedAction}
         @qti-assessment-item-connected=${onItemFirstUpdated}
       >
         ${unsafeHTML(xml.itemXML)}
-      </div>
+      </qti-item>
       <button @click=${() => item?.processResponse()}>Submit</button>
     `;
   },

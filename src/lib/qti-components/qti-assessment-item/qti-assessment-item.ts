@@ -1,6 +1,6 @@
-import { provide } from '@lit/context';
+import { consume } from '@lit/context';
 import { LitElement, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { watch } from '../../decorators/watch';
 import type { InteractionChangedDetails, OutcomeChangedDetails } from '../internal/event-types';
 import type { ResponseInteraction } from '../internal/expression-result';
@@ -9,7 +9,7 @@ import { OutcomeVariable, ResponseVariable } from '../internal/variables';
 import type { QtiFeedback } from '../qti-feedback/qti-feedback';
 import type { Interaction } from '../qti-interaction/internal/interaction/interaction';
 import type { QtiResponseProcessing } from '../qti-response-processing';
-import { ItemContext, itemContext, itemContextVariables } from './qti-assessment-item.context';
+import { ItemContext, itemContext } from './qti-assessment-item.context';
 
 /**
  * @summary The qti-assessment-item element contains all the other QTI 3 item structures.
@@ -45,34 +45,25 @@ export class QtiAssessmentItem extends LitElement {
   _handleReadonlyChange = (_: boolean, readonly: boolean) =>
     this._interactionElements.forEach(ch => (ch.readonly = readonly));
 
-  @provide({ context: itemContext })
-  // @property({ attribute: false })
-  private _context: ItemContext = {
-    identifier: this.getAttribute('identifier'),
-    variables: itemContextVariables
-  };
+  @consume({ context: itemContext, subscribe: true })
+  @state()
+  private readonly _context?: ItemContext | undefined = undefined;
 
   public get variables(): VariableValue<string | string[] | null>[] {
     return this._context.variables.map(v => ({ identifier: v.identifier, value: v.value, type: v.type }));
   }
 
-  public set variables(value: VariableValue<string | string[] | null>[]) {
-    if (!Array.isArray(value) || value.some(v => !('identifier' in v))) {
-      console.warn('variables property should be an array of VariableDeclaration');
-      return;
+  updated(changedProperties: Map<string | number | symbol, unknown>): void {
+    if (changedProperties.has('_context')) {
+      const oldContext = changedProperties.get('_context') as ItemContext;
+      if (oldContext == undefined) {
+        // console.log('oldcontext is undefined, new context is:', this._context);
+        this._updateVariables();
+      }
     }
+  }
 
-    this._context = {
-      ...this._context,
-      variables: this._context.variables.map(variable => {
-        const matchingValue = value.find(v => v.identifier === variable.identifier);
-        if (matchingValue) {
-          return { ...variable, ...matchingValue };
-        }
-        return variable;
-      })
-    };
-
+  private _updateVariables() {
     this._context.variables.forEach(variable => {
       if (variable.type === 'response') {
         const interactionElement = this._interactionElements.find(
@@ -89,7 +80,7 @@ export class QtiAssessmentItem extends LitElement {
     });
   }
 
-  private _initialContext: Readonly<ItemContext> = { ...this._context, variables: this._context.variables };
+  // private _initialContext: Readonly<ItemContext> = { ...this._context, variables: this._context.variables };
   private _feedbackElements: QtiFeedback[] = [];
   private _interactionElements: Interaction[] = [];
 
@@ -124,11 +115,11 @@ export class QtiAssessmentItem extends LitElement {
 
   constructor() {
     super();
-    this.addEventListener('qti-register-variable', e => {
-      this._context = { ...this._context, variables: [...this._context.variables, e.detail.variable] };
-      this._initialContext = this._context;
-      e.stopPropagation();
-    });
+    // this.addEventListener('qti-register-variable', e => {
+    //   this._context = { ...this._context, variables: [...this._context.variables, e.detail.variable] };
+    //   this._initialContext = this._context;
+    //   e.stopPropagation();
+    // });
     this.addEventListener('qti-register-feedback', (e: CustomEvent<QtiFeedback>) => {
       e.stopPropagation();
       const feedbackElement = e.detail;
@@ -205,10 +196,6 @@ export class QtiAssessmentItem extends LitElement {
     return true;
   }
 
-  public resetResponses() {
-    this._context = this._initialContext;
-  }
-
   public getResponse(identifier: string): Readonly<ResponseVariable> {
     return this.getVariable(identifier) as ResponseVariable;
   }
@@ -229,10 +216,10 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public updateResponseVariable(identifier: string, value: string | string[] | undefined) {
-    this._context = {
-      ...this._context,
-      variables: this._context.variables.map(v => (v.identifier !== identifier ? v : { ...v, value: value }))
-    };
+    // this._context = {
+    //   ...this._context,
+    //   variables: this._context.variables.map(v => (v.identifier !== identifier ? v : { ...v, value: value }))
+    // };
 
     this._emit<InteractionChangedDetails>('qti-interaction-changed', {
       item: this.identifier,
@@ -247,32 +234,32 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public updateOutcomeVariable(identifier: string, value: string | string[] | undefined) {
-    const outcomeVariable = this.getOutcome(identifier);
-    if (!outcomeVariable) {
-      console.warn(`Can not set qti-outcome-identifier: ${identifier}, it is not available`);
-      return;
-    }
+    // const outcomeVariable = this.getOutcome(identifier);
+    // if (!outcomeVariable) {
+    //   console.warn(`Can not set qti-outcome-identifier: ${identifier}, it is not available`);
+    //   return;
+    // }
 
-    this._context = {
-      ...this._context,
-      variables: this._context.variables.map(v => {
-        if (v.identifier !== identifier) {
-          return v;
-        }
-        return {
-          ...v,
-          value: outcomeVariable.cardinality === 'single' ? value : [...v.value, value as string]
-        };
-      })
-    };
-
-    this._feedbackElements.forEach(fe => fe.checkShowFeedback(identifier));
+    // this._context = {
+    //   ...this._context,
+    //   variables: this._context.variables.map(v => {
+    //     if (v.identifier !== identifier) {
+    //       return v;
+    //     }
+    //     return {
+    //       ...v,
+    //       value: outcomeVariable.cardinality === 'single' ? value : [...v.value, value as string]
+    //     };
+    //   })
+    // };
 
     this._emit<OutcomeChangedDetails>('qti-outcome-changed', {
       item: this.identifier,
       outcomeIdentifier: identifier,
-      value: this._context.variables.find(v => v.identifier === identifier)?.value
+      value: value
     });
+
+    this._feedbackElements.forEach(fe => fe.checkShowFeedback(identifier));
   }
 
   private _getCompletionStatus(): 'completed' | 'incomplete' | 'not_attempted' | 'unknown' {

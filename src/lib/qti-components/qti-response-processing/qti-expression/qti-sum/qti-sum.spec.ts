@@ -2,6 +2,7 @@ import { html, render } from 'lit';
 // import '../qti-basevalue/qti-basevalue';
 import { ItemContext, QtiAssessmentItem } from 'src';
 import '../../../qti-assessment-item/qti-assessment-item';
+import '../../../qti-item/qti-item';
 import '../../../qti-variable-declaration/qti-outcome-declaration/qti-outcome-declaration';
 import '../../qti-response-processing/qti-response-processing';
 import './../../qti-rule/qti-set-outcome-value/qti-set-outcome-value';
@@ -12,18 +13,24 @@ import { QtiSum } from './qti-sum';
 describe('QtiComponent qti-sum', () => {
   it('all true', () => {
     const template = () => html`
-      <qti-assessment-item>
-        <qti-outcome-declaration identifier="SCORE" cardinality="single" base-type="identifier">
-        <qti-response-processing>
-          <qti-set-outcome-value identifier="SCORE">
-            <qti-sum>
-              <qti-base-value>1</qti-base-value>
-              <qti-base-value>1</qti-base-value>
-              <qti-base-value>1</qti-base-value>
-            </qti-sum>
-          </qti-set-outcome-value>
-        </qti-response-processing>
-      </qti-assessment-item>
+      <qti-item>
+        <qti-assessment-item>
+          <qti-outcome-declaration
+            identifier="SCORE"
+            cardinality="single"
+            base-type="identifier"
+          ></qti-outcome-declaration>
+          <qti-response-processing>
+            <qti-set-outcome-value identifier="SCORE">
+              <qti-sum>
+                <qti-base-value>1</qti-base-value>
+                <qti-base-value>1</qti-base-value>
+                <qti-base-value>1</qti-base-value>
+              </qti-sum>
+            </qti-set-outcome-value>
+          </qti-response-processing>
+        </qti-assessment-item>
+      </qti-item>
     `;
     render(template(), document.body);
 

@@ -7,7 +7,7 @@ import { html } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 // import storyXML from './qti-lookup-outcome-value.xml?raw';
-const storyXML = `<qti-assessment-item
+const storyXML = `<qti-item><qti-assessment-item
   title="32c2sb"
   identifier="ITM-32c2sb"
   time-dependent="false"
@@ -50,7 +50,7 @@ const storyXML = `<qti-assessment-item
       <qti-variable identifier="RAW_SCORE"></qti-variable>
     </qti-lookup-outcome-value>
   </qti-response-processing>
-</qti-assessment-item>`;
+</qti-assessment-item></qti-item>`;
 
 type Story = StoryObj; // <Props>;
 

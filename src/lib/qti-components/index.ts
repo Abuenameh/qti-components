@@ -34,8 +34,8 @@ export * from './qti-interaction/qti-inline-choice-interaction/qti-inline-choice
 /* start choiceinteraction */
 export * from './qti-interaction/qti-choice-interaction/qti-choice-interaction';
 /* end choiceinteraction */
-export * from './qti-response-processing';
 export * from './qti-outcome-processing/qti-outcome-processing';
+export * from './qti-response-processing';
 /* start custom interactions */
 export * from './qti-interaction/qti-portable-custom-interaction/qti-portable-custom-interaction';
 /* end custom interactions */
@@ -67,7 +67,7 @@ export * from './qti-interaction/qti-hottext';
 export * from './qti-interaction/qti-inline-choice';
 export * from './qti-interaction/qti-simple-associable-choice';
 export * from './qti-interaction/qti-simple-choice';
-
+export * from './qti-item/qti-item';
 console.log(
   '%cC¿TO%cLab%c: qti-components loaded',
   'font-weight:bold; color:green',
