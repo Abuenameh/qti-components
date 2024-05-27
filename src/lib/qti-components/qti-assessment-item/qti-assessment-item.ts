@@ -8,8 +8,8 @@ import type { VariableDeclaration, VariableValue } from '../internal/variables';
 import { OutcomeVariable, ResponseVariable } from '../internal/variables';
 import type { QtiFeedback } from '../qti-feedback/qti-feedback';
 import type { Interaction } from '../qti-interaction/internal/interaction/interaction';
+import { ItemContext, itemContext } from '../qti-item/qti-item.context';
 import type { QtiResponseProcessing } from '../qti-response-processing';
-import { ItemContext, itemContext } from './qti-assessment-item.context';
 
 /**
  * @summary The qti-assessment-item element contains all the other QTI 3 item structures.
@@ -47,79 +47,10 @@ export class QtiAssessmentItem extends LitElement {
 
   @consume({ context: itemContext, subscribe: true })
   @state()
-  private readonly _context?: ItemContext | undefined = undefined;
-
-  public get variables(): VariableValue<string | string[] | null>[] {
-    return this._context.variables.map(v => ({ identifier: v.identifier, value: v.value, type: v.type }));
-  }
-
-  updated(changedProperties: Map<string | number | symbol, unknown>): void {
-    if (changedProperties.has('_context')) {
-      const oldContext = changedProperties.get('_context') as ItemContext;
-      if (oldContext == undefined) {
-        // console.log('oldcontext is undefined, new context is:', this._context);
-        this._updateVariables();
-      }
-    }
-  }
-
-  private _updateVariables() {
-    this._context.variables.forEach(variable => {
-      if (variable.type === 'response') {
-        const interactionElement = this._interactionElements.find(
-          (el: Interaction) => el.responseIdentifier === variable.identifier
-        );
-        if (interactionElement) {
-          interactionElement.response = variable.value;
-        }
-      }
-
-      if (variable.type === 'outcome') {
-        this._feedbackElements.forEach(fe => fe.checkShowFeedback(variable.identifier));
-      }
-    });
-  }
-
-  // private _initialContext: Readonly<ItemContext> = { ...this._context, variables: this._context.variables };
-  private _feedbackElements: QtiFeedback[] = [];
-  private _interactionElements: Interaction[] = [];
-
-  async connectedCallback(): Promise<void> {
-    super.connectedCallback();
-    await this.updateComplete;
-    this._emit<{ detail: QtiAssessmentItem }>('qti-assessment-item-connected', this);
-  }
-
-  /** @deprecated use variables property instead */
-  set responses(myResponses: ResponseInteraction[]) {
-    if (myResponses) {
-      for (const response of myResponses) {
-        const responseVariable = this.getResponse(response.responseIdentifier);
-        if (responseVariable) {
-          this.updateResponseVariable(response.responseIdentifier, response.response);
-        }
-
-        const interaction: Interaction | undefined = this._interactionElements.find(
-          i => i.getAttribute('response-identifier') === response.responseIdentifier
-        );
-        if (interaction) {
-          interaction.response = response.response;
-        }
-      }
-    }
-  }
-
-  override render() {
-    return html`<slot></slot>`;
-  }
+  private _context?: ItemContext | undefined = undefined;
 
   constructor() {
     super();
-    // this.addEventListener('qti-register-variable', e => {
-    //   this._context = { ...this._context, variables: [...this._context.variables, e.detail.variable] };
-    //   this._initialContext = this._context;
-    //   e.stopPropagation();
-    // });
     this.addEventListener('qti-register-feedback', (e: CustomEvent<QtiFeedback>) => {
       e.stopPropagation();
       const feedbackElement = e.detail;
@@ -145,8 +76,53 @@ export class QtiAssessmentItem extends LitElement {
         e.stopPropagation();
       }
     );
-
     this.addEventListener('qti-interaction-response', this.handleUpdateResponseVariable);
+  }
+
+  public get variables(): VariableValue<string | string[] | null>[] {
+    return this._context.variables.map(v => ({ identifier: v.identifier, value: v.value, type: v.type }));
+  }
+
+  updated(changedProperties: Map<string | number | symbol, unknown>): void {
+    if (changedProperties.has('_context')) {
+      const oldContext = changedProperties.get('_context') as ItemContext;
+      // if (oldContext == undefined) {
+      this._context.variables.forEach(variable => {
+        const oldValue = oldContext?.variables?.find(v => v.identifier === variable.identifier)?.value;
+        if (variable.type === 'response') {
+          const responseVariable = variable as ResponseVariable;
+          if (responseVariable.value !== oldValue) {
+            const interaction = this._interactionElements.find(
+              (el: Interaction) => el.responseIdentifier === responseVariable.identifier
+            );
+            if (interaction) {
+              interaction.response = responseVariable.value;
+            }
+          }
+        }
+
+        if (variable.type === 'outcome') {
+          const outcomeVariable = variable as OutcomeVariable;
+          if (outcomeVariable.value !== oldValue) {
+            this._feedbackElements.forEach(fe => fe.checkShowFeedback(outcomeVariable.identifier));
+          }
+        }
+      });
+      // }
+    }
+  }
+
+  private _feedbackElements: QtiFeedback[] = [];
+  private _interactionElements: Interaction[] = [];
+
+  async connectedCallback(): Promise<void> {
+    super.connectedCallback();
+    await this.updateComplete;
+    this._emit<{ detail: QtiAssessmentItem }>('qti-assessment-item-connected', this);
+  }
+
+  override render() {
+    return html`<slot></slot>`;
   }
 
   public showCorrectResponse(show: boolean) {
@@ -170,12 +146,12 @@ export class QtiAssessmentItem extends LitElement {
   public processResponse(countNumAttempts: boolean = true): boolean {
     const responseProcessor = this.querySelector('qti-response-processing') as unknown as QtiResponseProcessing;
     if (!responseProcessor) {
-      // console.info('Client side response processing template not available');
+      console.info('No responseprocessing');
       return false;
     }
 
     if (!responseProcessor.process) {
-      // console.info('Client side response webcomponents not available');
+      console.info('Client side response webcomponents not available');
       return false;
     }
 
@@ -216,50 +192,26 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public updateResponseVariable(identifier: string, value: string | string[] | undefined) {
-    // this._context = {
-    //   ...this._context,
-    //   variables: this._context.variables.map(v => (v.identifier !== identifier ? v : { ...v, value: value }))
-    // };
-
     this._emit<InteractionChangedDetails>('qti-interaction-changed', {
       item: this.identifier,
       responseIdentifier: identifier,
       response: value
     });
 
-    if (this.adaptive === 'false') {
-      // if adapative, completionStatus is set by the processing template
-      this.updateOutcomeVariable('completionStatus', this._getCompletionStatus());
-    }
+    // if (this.adaptive === 'false') {
+    // if adaptive, completionStatus is set by the processing template
+    // this.updateOutcomeVariable('completionStatus', this._getCompletionStatus());
+    // }
   }
 
   public updateOutcomeVariable(identifier: string, value: string | string[] | undefined) {
-    // const outcomeVariable = this.getOutcome(identifier);
-    // if (!outcomeVariable) {
-    //   console.warn(`Can not set qti-outcome-identifier: ${identifier}, it is not available`);
-    //   return;
-    // }
-
-    // this._context = {
-    //   ...this._context,
-    //   variables: this._context.variables.map(v => {
-    //     if (v.identifier !== identifier) {
-    //       return v;
-    //     }
-    //     return {
-    //       ...v,
-    //       value: outcomeVariable.cardinality === 'single' ? value : [...v.value, value as string]
-    //     };
-    //   })
-    // };
-
     this._emit<OutcomeChangedDetails>('qti-outcome-changed', {
       item: this.identifier,
       outcomeIdentifier: identifier,
       value: value
     });
 
-    this._feedbackElements.forEach(fe => fe.checkShowFeedback(identifier));
+    // this._feedbackElements.forEach(fe => fe.checkShowFeedback(identifier));
   }
 
   private _getCompletionStatus(): 'completed' | 'incomplete' | 'not_attempted' | 'unknown' {

@@ -1,7 +1,7 @@
 import { consume } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { ItemContext, itemContext } from './qti-assessment-item.context';
+import { ItemContext, itemContext } from '../lib/qti-components/qti-item/qti-item.context';
 
 @customElement('item-print-variables')
 export class ItemPrintVariables extends LitElement {

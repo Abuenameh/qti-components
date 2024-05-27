@@ -55,7 +55,6 @@ export * from './qti-interaction/qti-position-object-interaction/qti-position-ob
 export * from './qti-interaction/qti-select-point-interaction/qti-select-point-interaction';
 export * from './qti-interaction/qti-slider-interaction/qti-slider-interaction';
 /* end only preview items */
-export * from './qti-assessment-item/qti-assessment-item.context';
 export * from './qti-custom-operator/qti-custom-operator';
 export * from './qti-interaction/internal/interaction/interaction';
 export * from './qti-interaction/qti-associable-hotspot';
@@ -67,7 +66,8 @@ export * from './qti-interaction/qti-hottext';
 export * from './qti-interaction/qti-inline-choice';
 export * from './qti-interaction/qti-simple-associable-choice';
 export * from './qti-interaction/qti-simple-choice';
-export * from './qti-item/qti-item';
+export * from './qti-item';
+
 console.log(
   '%cC¿TO%cLab%c: qti-components loaded',
   'font-weight:bold; color:green',

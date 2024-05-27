@@ -1,6 +1,16 @@
 import { qtiTransformItem, qtiTransformTest } from 'src/lib/qti-transformers';
 
-export const fetchItem = async (packageUri: string, index: number): Promise<any> => {
+export const fetchItem = async (
+  packageUri: string,
+  index: number
+): Promise<{
+  itemXML: Element;
+  items: {
+    identifier: string;
+    href: string;
+    category: string;
+  }[];
+}> => {
   packageUri = packageUri.endsWith('/') ? packageUri : packageUri + '/';
   const assessmentTestHref = `assessment.xml`;
   const itemLocation = `${packageUri}${assessmentTestHref.substring(0, assessmentTestHref.lastIndexOf('/'))}/`;
@@ -11,7 +21,7 @@ export const fetchItem = async (packageUri: string, index: number): Promise<any>
 
   const itemHTML = await qtiTransformItem()
     .load(itemLocation + itemsFromTest[index].href)
-    .then(api => api.path(itemLocation).stripStyleSheets().html());
+    .then(api => api.path(itemLocation).stripStyleSheets().htmldoc());
 
-  return { itemXML: itemHTML, items: itemsFromTest };
+  return { itemXML: itemHTML.firstElementChild, items: itemsFromTest };
 };

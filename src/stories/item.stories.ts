@@ -1,10 +1,10 @@
 import '@citolab/qti-components/qti-components';
-
 import { action } from '@storybook/addon-actions';
 import type { Meta, StoryObj } from '@storybook/web-components';
 import { html } from 'lit';
-import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import './item-print-variables';
 
+import { QtiAssessmentItem } from '@citolab/qti-components/qti-components';
 import packages from '../assets/packages.json';
 import { fetchItem } from './fetch-item';
 
@@ -33,31 +33,49 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-let item;
+let item: QtiAssessmentItem | null = null;
 
 export const Examples: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
-    const onInteractionChangedAction = action('on-interaction-changed');
-    const onOutcomeChangedAction = action('qti-outcome-changed');
-    const onItemFirstUpdated = ({ detail: qtiAssessmentItem }) => {
-      item = qtiAssessmentItem;
-      action('qti-assessment-item-connected');
-    };
-
     item && (item.disabled = disabled);
-    item && (item.view = view);
-
     return html`
-      <qti-item
-        class="item"
-        @qti-interaction-changed=${onInteractionChangedAction}
-        @qti-outcome-changed=${onOutcomeChangedAction}
-        @qti-assessment-item-connected=${onItemFirstUpdated}
-      >
-        ${unsafeHTML(xml.itemXML)}
-      </qti-item>
-      <button @click=${() => item?.processResponse()}>Submit</button>
+      <qti-item-logger>
+        <qti-item
+          class="item"
+          @qti-assessment-item-connected=${e => {
+            item = e.detail;
+            action('qti-assessment-item-connected')(e);
+          }}
+          @qti-response-changed=${action('qti-response-changed')}
+          @qti-outcomes-changed=${action('qti-outcomes-changed')}
+        >
+          ${xml.itemXML}
+
+          <item-print-variables></item-print-variables>
+        </qti-item>
+      </qti-item-logger>
+      <button @click=${() => item.processResponse()}>Submit</button>
     `;
   },
   loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
 };
+
+// @qti-interaction-changed=${onInteractionChangedAction}
+// @qti-outcome-changed=${onOutcomeChangedAction}
+// @qti-assessment-item-connected=${onItemFirstUpdated}
+/*
+      <div
+        class="item"
+        @qti-assessment-item-connected=${e => {
+          item = e.detail;
+          action('qti-assessment-item-connected')(e);
+        }}
+        @qti-response-changed=${action('qti-response-changed')}
+        @qti-outcomes-changed=${action('qti-outcomes-changed')}
+      >
+        ${unsafeHTML(`
+        <qti-item>${xml.itemXML}
+          <item-print-variables></item-print-variables>
+        </qti-item>`)}
+      </div>
+      */

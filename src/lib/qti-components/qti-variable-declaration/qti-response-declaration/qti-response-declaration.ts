@@ -3,7 +3,7 @@ import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { BaseType, Cardinality } from '../../internal/expression-result';
 import { ResponseVariable } from '../../internal/variables';
-import { ItemContext, itemContext } from '../../qti-assessment-item/qti-assessment-item.context';
+import { ItemContext, itemContext } from '../../qti-item/qti-item.context';
 import { QtiMapping } from '../../qti-response-processing/qti-expression/qti-mapping/qti-mapping';
 import { QtiVariableDeclaration } from '../qti-variable-declaration';
 
