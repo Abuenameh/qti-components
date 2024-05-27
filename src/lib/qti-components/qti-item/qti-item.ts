@@ -1,7 +1,6 @@
-import { createContext } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { ItemContext } from './qti-item.context';
+import { itemContext } from './qti-item.context';
 import { QtiItemContextConsumer } from './qti-item.context.controller';
 
 @customElement('qti-item')
@@ -11,13 +10,17 @@ export class QtiItem extends LitElement {
   // private _context: ItemContext;
 
   private _controller = new QtiItemContextConsumer(this, {
-    context: createContext<ItemContext>('item'),
+    context: itemContext,
     subscribe: true
+
     // callback: value => (this._context = value)
   });
 
   render() {
-    return html`<slot></slot>`;
+    return html`
+      <pre>${JSON.stringify(this._controller.value, null, 4)}</pre>
+      <slot></slot>
+    `;
   }
 }
 

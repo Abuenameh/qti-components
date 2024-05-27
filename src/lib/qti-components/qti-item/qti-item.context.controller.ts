@@ -1,10 +1,10 @@
-import { Context, ContextCallback, ContextType } from '@lit/context';
-import { ContextRequestEvent } from 'node_modules/@lit/context/lib/context-request-event';
+import { Context, ContextCallback, ContextProvider, ContextType } from '@lit/context';
 // import type {Context, ContextType} from '../create-context.js';
+import { ContextConsumer } from '@lit/context';
 import type { ReactiveController, ReactiveControllerHost } from '@lit/reactive-element';
 import { InteractionChangedDetails, OutcomeChangedDetails } from '../internal/event-types';
 import { VariableDeclaration } from '../internal/variables';
-import { itemContextVariables } from './qti-item.context';
+import { itemContext, itemContextVariables } from './qti-item.context';
 
 export interface Options<C extends Context<unknown, unknown>> {
   context: C;
@@ -25,10 +25,17 @@ export class QtiItemContextConsumer<
   private provided = false;
 
   _value?: ContextType<C & { variables: any }> = undefined;
+  _provider: ContextProvider<any, Partial<ReactiveControllerHost> & HTMLElement>;
+  private _consumer: ContextConsumer<
+    {
+      __context__: import('/Users/patrickklein/Projects/QTI/QTI-Components/src/lib/qti-components/qti-item/qti-item.context').ItemContext;
+    },
+    HostElement
+  >;
 
   set value(value: ContextType<C>) {
     this._value = value;
-    console.log('value', this._value);
+    this._provider.setValue(value);
     this.host.requestUpdate();
   }
   get value(): ContextType<C> {
@@ -71,25 +78,31 @@ export class QtiItemContextConsumer<
 
   hostConnected(): void {
     let contextFound = false;
-    this.attachListeners();
-    this.host.dispatchEvent(
-      new ContextRequestEvent(
-        this.context,
-        (value, unsubscribe) => {
-          contextFound = true;
-          this._callback(value, unsubscribe);
-        },
-        this.subscribe
-      )
-    );
+
+    this._consumer = new ContextConsumer(this.host, {
+      context: itemContext,
+      subscribe: true,
+      callback: value => {
+        contextFound = true;
+        this._callback(value as ContextType<C>);
+      }
+    });
 
     console.log(this.host.tagName, 'contextFound', contextFound);
 
-    if (!contextFound && this.callback) {
-      this._callback({
+    if (!contextFound) {
+      this.attachListeners();
+      if (this._callback) {
+        this._callback({
+          identifier: this.host.getAttribute('identifier') ?? '',
+          variables: itemContextVariables
+        } as ContextType<C>);
+      }
+      this._provider = new ContextProvider(this.host, { context: itemContext });
+      this._provider.setValue({
         identifier: this.host.getAttribute('identifier') ?? '',
         variables: itemContextVariables
-      } as ContextType<C>);
+      });
     }
   }
 

@@ -1,6 +1,6 @@
 import { createContext } from '@lit/context';
 import { LitElement, html } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { watch } from '../../decorators/watch';
 import type { InteractionChangedDetails, OutcomeChangedDetails } from '../internal/event-types';
 import type { ResponseInteraction } from '../internal/expression-result';
@@ -53,11 +53,9 @@ export class QtiAssessmentItem extends LitElement {
     context: createContext<ItemContext>('item'),
     subscribe: true,
     callback: value => {
-      this._context = value;
+      console.log('context', value);
     }
   });
-  @state()
-  private _context: ItemContext;
 
   constructor() {
     super();

@@ -51,7 +51,7 @@ export const Examples: Story = {
         >
           ${xml.itemXML}
 
-          <!-- <item-print-variables></item-print-variables> -->
+          <!-- **<item-print-variables></item-print-variables>** -->
         </qti-item>
       </qti-item-logger>
       <button @click=${() => item.processResponse()}>Submit</button>
