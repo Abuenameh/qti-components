@@ -24,5 +24,5 @@ export const itemContextVariables = [
   }
 ] as VariableDeclaration<string | string[]>[];
 
-export const itemContext = createContext<ItemContext>('item');
+export const itemContext = createContext<ItemContext>(Symbol('item'));
 // export const itemContext = identifier => createContext<ItemContext>(identifier);

@@ -20,11 +20,9 @@ export class QtiItemLogger extends LitElement {
   constructor() {
     super();
     this.addEventListener('qti-response-changed', (event: CustomEvent) => {
-      console.log('response', event.detail);
       this.arrayWithEvents = [...this.arrayWithEvents, event.detail];
     });
     this.addEventListener('qti-outcomes-changed', (event: CustomEvent) => {
-      console.log('response', event.detail);
       this.arrayWithEvents = [...this.arrayWithEvents, event.detail];
     });
   }
@@ -40,7 +38,7 @@ export class QtiItemLogger extends LitElement {
   render() {
     return html`
       <slot></slot>
-      <button @click=${() => (this.providerItem[0].data = 'hallo')}>set "hallo"</button>
+
       <input
         type="range"
         @input=${e => this.changeRange(e.target.value)}
@@ -54,3 +52,5 @@ export class QtiItemLogger extends LitElement {
     `;
   }
 }
+
+// <button @click=${() => (this.providerItem[0].data = 'hallo')}>set "hallo"</button>

@@ -51,8 +51,26 @@ export const Examples: Story = {
         >
           ${xml.itemXML}
 
-          <item-print-variables></item-print-variables>
+          <!-- <item-print-variables></item-print-variables> -->
         </qti-item>
+      </qti-item-logger>
+      <button @click=${() => item.processResponse()}>Submit</button>
+    `;
+  },
+  loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
+};
+
+export const Controller: Story = {
+  render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
+    item && (item.disabled = disabled);
+    return html`
+      <qti-item-logger
+        @qti-assessment-item-connected=${e => {
+          item = e.detail;
+          action('qti-assessment-item-connected')(e);
+        }}
+      >
+        ${xml.itemXML}
       </qti-item-logger>
       <button @click=${() => item.processResponse()}>Submit</button>
     `;
