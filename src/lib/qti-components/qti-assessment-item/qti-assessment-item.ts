@@ -1,4 +1,3 @@
-import { createContext } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { watch } from '../../decorators/watch';
@@ -9,7 +8,7 @@ import { OutcomeVariable, ResponseVariable } from '../internal/variables';
 import type { QtiFeedback } from '../qti-feedback/qti-feedback';
 import type { Interaction } from '../qti-interaction/internal/interaction/interaction';
 import { QtiItemContextConsumer } from '../qti-item';
-import { ItemContext } from '../qti-item/qti-item.context';
+import { ItemContext, itemContext } from '../qti-item/qti-item.context';
 import type { QtiResponseProcessing } from '../qti-response-processing';
 
 /**
@@ -50,10 +49,10 @@ export class QtiAssessmentItem extends LitElement {
     this._interactionElements.forEach(ch => (ch.readonly = readonly));
 
   private _controller = new QtiItemContextConsumer(this, {
-    context: createContext<ItemContext>('item'),
+    context: itemContext,
     subscribe: true,
     callback: value => {
-      console.log('context', value);
+      console.log('QtiAssessmentItem callback: ', value);
     }
   });
 

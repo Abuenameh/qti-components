@@ -5,15 +5,10 @@ import { QtiItemContextConsumer } from './qti-item.context.controller';
 
 @customElement('qti-item')
 export class QtiItem extends LitElement {
-  // @provide({ context: itemContext })
-  // @state()
-  // private _context: ItemContext;
-
   private _controller = new QtiItemContextConsumer(this, {
     context: itemContext,
-    subscribe: true
-
-    // callback: value => (this._context = value)
+    subscribe: true,
+    callback: value => console.log('QtiItem callback: ', value)
   });
 
   render() {

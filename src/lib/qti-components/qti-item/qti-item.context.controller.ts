@@ -1,10 +1,8 @@
-import { Context, ContextCallback, ContextProvider, ContextType } from '@lit/context';
-// import type {Context, ContextType} from '../create-context.js';
-import { ContextConsumer } from '@lit/context';
+import { Context, ContextCallback, ContextConsumer, ContextProvider, ContextType } from '@lit/context';
 import type { ReactiveController, ReactiveControllerHost } from '@lit/reactive-element';
 import { InteractionChangedDetails, OutcomeChangedDetails } from '../internal/event-types';
 import { VariableDeclaration } from '../internal/variables';
-import { itemContext, itemContextVariables } from './qti-item.context';
+import { ItemContext, itemContext, itemContextVariables } from './qti-item.context';
 
 export interface Options<C extends Context<unknown, unknown>> {
   context: C;
@@ -25,13 +23,8 @@ export class QtiItemContextConsumer<
   private provided = false;
 
   _value?: ContextType<C & { variables: any }> = undefined;
-  _provider: ContextProvider<any, Partial<ReactiveControllerHost> & HTMLElement>;
-  private _consumer: ContextConsumer<
-    {
-      __context__: import('/Users/patrickklein/Projects/QTI/QTI-Components/src/lib/qti-components/qti-item/qti-item.context').ItemContext;
-    },
-    HostElement
-  >;
+  private _provider: ContextProvider<any, Partial<ReactiveControllerHost> & HTMLElement>;
+  private _consumer: ContextConsumer<{ __context__: ItemContext }, HostElement>;
 
   set value(value: ContextType<C>) {
     this._value = value;
@@ -88,21 +81,19 @@ export class QtiItemContextConsumer<
       }
     });
 
-    console.log(this.host.tagName, 'contextFound', contextFound);
-
     if (!contextFound) {
       this.attachListeners();
-      if (this._callback) {
+
         this._callback({
           identifier: this.host.getAttribute('identifier') ?? '',
           variables: itemContextVariables
         } as ContextType<C>);
-      }
+
       this._provider = new ContextProvider(this.host, { context: itemContext });
-      this._provider.setValue({
+      this.value = {
         identifier: this.host.getAttribute('identifier') ?? '',
         variables: itemContextVariables
-      });
+      } as ContextType<C>;
     }
   }
 
