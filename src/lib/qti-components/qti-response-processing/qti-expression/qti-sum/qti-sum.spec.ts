@@ -13,30 +13,28 @@ import { QtiSum } from './qti-sum';
 describe('QtiComponent qti-sum', () => {
   it('all true', () => {
     const template = () => html`
-      <qti-item>
-        <qti-assessment-item>
-          <qti-outcome-declaration
-            identifier="SCORE"
-            cardinality="single"
-            base-type="identifier"
-          ></qti-outcome-declaration>
-          <qti-response-processing>
-            <qti-set-outcome-value identifier="SCORE">
-              <qti-sum>
-                <qti-base-value>1</qti-base-value>
-                <qti-base-value>1</qti-base-value>
-                <qti-base-value>1</qti-base-value>
-              </qti-sum>
-            </qti-set-outcome-value>
-          </qti-response-processing>
-        </qti-assessment-item>
-      </qti-item>
+      <qti-assessment-item>
+        <qti-outcome-declaration
+          identifier="SCORE"
+          cardinality="single"
+          base-type="identifier"
+        ></qti-outcome-declaration>
+        <qti-response-processing>
+          <qti-set-outcome-value identifier="SCORE">
+            <qti-sum>
+              <qti-base-value>1</qti-base-value>
+              <qti-base-value>1</qti-base-value>
+              <qti-base-value>1</qti-base-value>
+            </qti-sum>
+          </qti-set-outcome-value>
+        </qti-response-processing>
+      </qti-assessment-item>
     `;
     render(template(), document.body);
 
     const qtiAssessmentItem = document.body.querySelector('qti-assessment-item') as QtiAssessmentItem;
     qtiAssessmentItem.processResponse();
-    const itemContext = (qtiAssessmentItem as any)._context as ItemContext;
+    const itemContext = (qtiAssessmentItem as any)._controller.value as ItemContext;
     const scoreVariable = itemContext.variables.find(v => v.identifier === 'SCORE');
     expect(scoreVariable?.value).toEqual('3');
   });

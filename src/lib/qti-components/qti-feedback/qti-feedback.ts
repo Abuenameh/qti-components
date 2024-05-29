@@ -1,7 +1,8 @@
-import { LitElement, PropertyValueMap } from 'lit';
-import { property } from 'lit/decorators.js';
-import { QtiAssessmentItem } from '../qti-assessment-item/qti-assessment-item';
+import { consume } from '@lit/context';
+import { LitElement } from 'lit';
+import { property, state } from 'lit/decorators.js';
 import { IsNullOrUndefined } from '../internal/utils';
+import { ItemContext, itemContext } from '../qti-item';
 
 export abstract class QtiFeedback extends LitElement {
   @property({ type: String, attribute: 'show-hide' })
@@ -16,8 +17,13 @@ export abstract class QtiFeedback extends LitElement {
   @property({ type: String, attribute: false })
   public showStatus: string;
 
+  @consume({ context: itemContext, subscribe: true })
+  @state()
+  private itemContext: ItemContext;
+
   public override connectedCallback() {
     super.connectedCallback();
+
     this.dispatchEvent(
       new CustomEvent<QtiFeedback>('qti-register-feedback', {
         bubbles: true,
@@ -27,8 +33,9 @@ export abstract class QtiFeedback extends LitElement {
     );
   }
 
-  public checkShowFeedback(outcomeIdentifier: string) {    
-    const outcomeVariable = (this.closest('qti-assessment-item') as QtiAssessmentItem).getOutcome(outcomeIdentifier);
+  public checkShowFeedback(outcomeIdentifier: string) {
+    // const outcomeVariable = (this.closest('qti-assessment-item') as QtiAssessmentItem).getOutcome(outcomeIdentifier);
+    const outcomeVariable = this.itemContext.variables.find(v => v.identifier === outcomeIdentifier);
 
     if (this.outcomeIdentifier !== outcomeIdentifier || !outcomeVariable) return;
     let isFound = false;
@@ -41,11 +48,10 @@ export abstract class QtiFeedback extends LitElement {
           this.identifier === outcomeVariable.value) ||
         false;
     }
-
     this.showFeedback(isFound);
   }
 
-  private showFeedback(value: boolean) {    
-    this.showStatus = (value && this.showHide === 'show') || (!value && this.showHide === 'hide') ? 'on' : 'off';    
+  private showFeedback(value: boolean) {
+    this.showStatus = (value && this.showHide === 'show') || (!value && this.showHide === 'hide') ? 'on' : 'off';
   }
 }

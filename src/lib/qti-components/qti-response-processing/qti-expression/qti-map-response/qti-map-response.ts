@@ -1,4 +1,5 @@
 import { property } from 'lit/decorators.js';
+import { ResponseVariable } from 'src/lib/qti-components/internal/variables';
 import { ScoringHelper } from '../../utilities/scoring-helper';
 import { QtiExpression } from '../qti-expression';
 
@@ -6,7 +7,7 @@ export class QtiMapResponse extends QtiExpression<number> {
   @property({ type: String }) identifier: string;
 
   public override getResult(): number {
-    const response = this.assessmentItem.getResponse(this.identifier);
+    const response = this.itemContext?.variables.find(v => v.identifier === this.identifier) as ResponseVariable;
     if (!response) {
       console.warn(`Response ${this.identifier} can not be found`);
       return null;

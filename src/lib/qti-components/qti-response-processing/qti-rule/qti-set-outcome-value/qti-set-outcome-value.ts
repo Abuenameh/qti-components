@@ -25,6 +25,12 @@ export class QtiSetOutcomeValue extends QtiRule {
   }
 }
 
+declare global {
+  interface HTMLElementTagNameMap {
+    'qti-set-outcome-value': QtiSetOutcomeValue;
+  }
+}
+
 export class QtiSetOutcomeValueRule<T> implements QtiRuleBase {
   constructor(private expression: QtiExpressionBase<T>) {}
 

@@ -92,8 +92,8 @@ export const Controller: Story = {
         @qti-outcomes-changed=${action('qti-outcomes-changed')}
       >
         ${unsafeHTML(`
-        <qti-item>${xml.itemXML}
+        ${xml.itemXML}
           <item-print-variables></item-print-variables>
-        </qti-item>`)}
+        `)}
       </div>
       */

@@ -7,7 +7,7 @@ import { QtiContains } from './qti-contains';
 describe('qti-contains', () => {
   it('should check if the variable identified in the first child is contained in the second one', () => {
     const template = () =>
-      html`<qti-item>
+      html`
         <qti-assessment-item>
           <qti-response-declaration identifier="gapmatch_1" cardinality="multiple" base-type="directedPair">
             <qti-correct-response>

@@ -1,7 +1,7 @@
+import { property } from 'lit/decorators.js';
 import { watch } from '../../../../decorators/watch';
-import { Interaction } from '../interaction/interaction';
-import { property, state } from 'lit/decorators.js';
 import { QtiChoice } from '../choice/qti-choice';
+import { Interaction } from '../interaction/interaction';
 export abstract class Choices extends Interaction {
   protected _choiceElements: QtiChoice[] = [];
 
@@ -127,7 +127,7 @@ export abstract class Choices extends Interaction {
 
     let result: string | string[];
     if (this.maxChoices === 1) {
-      result = selectedIdentifiers.length > 0 ? selectedIdentifiers[0] : undefined;
+      result = selectedIdentifiers.length > 0 ? selectedIdentifiers[0] : '';
     } else {
       result = selectedIdentifiers;
     }

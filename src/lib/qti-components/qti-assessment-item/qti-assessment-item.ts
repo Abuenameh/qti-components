@@ -1,3 +1,4 @@
+import { ContextConsumer } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { watch } from '../../decorators/watch';
@@ -8,7 +9,7 @@ import { OutcomeVariable, ResponseVariable } from '../internal/variables';
 import type { QtiFeedback } from '../qti-feedback/qti-feedback';
 import type { Interaction } from '../qti-interaction/internal/interaction/interaction';
 import { QtiItemContextConsumer } from '../qti-item';
-import { ItemContext, itemContext } from '../qti-item/qti-item.context';
+import { itemContext } from '../qti-item/qti-item.context';
 import type { QtiResponseProcessing } from '../qti-response-processing';
 
 /**
@@ -48,11 +49,31 @@ export class QtiAssessmentItem extends LitElement {
   _handleReadonlyChange = (_: boolean, readonly: boolean) =>
     this._interactionElements.forEach(ch => (ch.readonly = readonly));
 
+  private _myData = new ContextConsumer(this, { context: itemContext });
+
   private _controller = new QtiItemContextConsumer(this, {
-    context: itemContext,
-    subscribe: true,
-    callback: value => {
-      console.log('QtiAssessmentItem callback: ', value);
+    callback: (a, oldContext) => {
+      this._controller.value.variables.forEach(variable => {
+        const oldValue = oldContext?.variables?.find(v => v.identifier === variable.identifier)?.value;
+        if (variable.type === 'response') {
+          const responseVariable = variable as ResponseVariable;
+          if (responseVariable.value !== oldValue) {
+            const interaction = this._interactionElements.find(
+              (el: Interaction) => el.responseIdentifier === responseVariable.identifier
+            );
+            if (interaction) {
+              interaction.response = responseVariable.value;
+            }
+          }
+        }
+
+        if (variable.type === 'outcome') {
+          const outcomeVariable = variable as OutcomeVariable;
+          if (outcomeVariable.value !== oldValue) {
+            this._feedbackElements.forEach(fe => fe.checkShowFeedback(outcomeVariable.identifier));
+          }
+        }
+      });
     }
   });
 
@@ -93,41 +114,8 @@ export class QtiAssessmentItem extends LitElement {
     this._emit<{ detail: QtiAssessmentItem }>('qti-assessment-item-connected', this);
   }
 
-  updated(changedProperties: Map<string | number | symbol, unknown>): void {
-    if (changedProperties.has('_context')) {
-      console.log(this.tagName, 'update _context');
-
-      const oldContext = changedProperties.get('_context') as ItemContext;
-      // if (oldContext == undefined) {
-      this._controller.value.variables.forEach(variable => {
-        const oldValue = oldContext?.variables?.find(v => v.identifier === variable.identifier)?.value;
-        if (variable.type === 'response') {
-          const responseVariable = variable as ResponseVariable;
-          if (responseVariable.value !== oldValue) {
-            const interaction = this._interactionElements.find(
-              (el: Interaction) => el.responseIdentifier === responseVariable.identifier
-            );
-            if (interaction) {
-              interaction.response = responseVariable.value;
-            }
-          }
-        }
-
-        if (variable.type === 'outcome') {
-          const outcomeVariable = variable as OutcomeVariable;
-          if (outcomeVariable.value !== oldValue) {
-            this._feedbackElements.forEach(fe => fe.checkShowFeedback(outcomeVariable.identifier));
-          }
-        }
-      });
-      // }
-    }
-  }
-
   override render() {
-    return html`<slot></slot>
-
-      <pre>${JSON.stringify(this._controller.value, null, 4)}</pre> `;
+    return html`<slot></slot>`;
   }
 
   public get variables(): VariableValue<string | string[] | null>[] {
@@ -190,7 +178,8 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public getVariable(identifier: string): Readonly<VariableDeclaration<string | string[] | null>> {
-    return this._controller.value.variables.find(v => v.identifier === identifier) || null;
+    const variable = this._controller.value.variables.find(v => v.identifier === identifier);
+    return variable;
   }
 
   // saving privates here: ------------------------------------------------------------------------------

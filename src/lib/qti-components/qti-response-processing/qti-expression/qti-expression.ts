@@ -1,7 +1,8 @@
+import { consume } from '@lit/context';
 import { LitElement, css, html } from 'lit';
 import { state } from 'lit/decorators.js';
 import { ResponseVariable, VariableDeclaration } from '../../internal/variables';
-import { QtiAssessmentItem } from '../../qti-assessment-item/qti-assessment-item';
+import { ItemContext, itemContext } from '../../qti-item';
 import { QtiMultiple } from './qti-multiple/qti-multiple';
 
 export interface QtiExpressionBase<T> {
@@ -14,6 +15,10 @@ export interface QtiExpressionBase<T> {
 export abstract class QtiExpression<T> extends LitElement implements QtiExpressionBase<T> {
   @state()
   protected result: any;
+
+  @consume({ context: itemContext, subscribe: true })
+  @state()
+  protected itemContext: ItemContext;
 
   // hide the slot with css
   static styles = css`
@@ -36,9 +41,9 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
     throw new Error('Not implemented');
   }
 
-  get assessmentItem(): QtiAssessmentItem {
-    return this.closest('qti-assessment-item') as QtiAssessmentItem;
-  }
+  // get assessmentItem(): QtiAssessmentItem {
+  //   return this.closest('qti-assessment-item') as QtiAssessmentItem;
+  // }
 
   getVariables = (): VariableDeclaration<number | string | (number | string)[] | null>[] =>
     // FIXME: if this itself is multiple, this will never enter the qti-multiple switch
@@ -56,7 +61,7 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
           }
           case 'qti-variable': {
             const identifier = e.getAttribute('identifier') || '';
-            const variable = this.assessmentItem.getVariable(identifier);
+            const variable = this.itemContext.variables.find(v => v.identifier === identifier);
             return variable;
           }
           case 'qti-multiple': {
@@ -75,7 +80,9 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
           }
           case 'qti-correct': {
             const identifier = e.getAttribute('identifier') || '';
-            const responseVariable = this.assessmentItem.getResponse(identifier);
+            const responseVariable = this.itemContext.variables.find(
+              v => v.identifier === identifier
+            ) as ResponseVariable;
             return {
               baseType: responseVariable.baseType,
               value: responseVariable.correctResponse,

@@ -1,13 +1,11 @@
-import { Context, ContextCallback, ContextConsumer, ContextProvider, ContextType } from '@lit/context';
+import { Context, ContextProvider } from '@lit/context';
 import type { ReactiveController, ReactiveControllerHost } from '@lit/reactive-element';
 import { InteractionChangedDetails, OutcomeChangedDetails } from '../internal/event-types';
 import { VariableDeclaration } from '../internal/variables';
 import { ItemContext, itemContext, itemContextVariables } from './qti-item.context';
 
 export interface Options<C extends Context<unknown, unknown>> {
-  context: C;
-  callback?: (value: ContextType<C>, dispose?: () => void) => void;
-  subscribe?: boolean;
+  callback?: (value: ItemContext, oldValue: ItemContext, dispose?: () => void) => void;
 }
 
 export class QtiItemContextConsumer<
@@ -16,23 +14,21 @@ export class QtiItemContextConsumer<
 > implements ReactiveController
 {
   protected host: HostElement;
-  private context: C;
-  private callback?: (value: ContextType<C>, dispose?: () => void) => void;
-  private subscribe = false;
 
-  private provided = false;
+  private callback?: (value: ItemContext, oldValue: ItemContext, dispose?: () => void) => void;
 
-  _value?: ContextType<C & { variables: any }> = undefined;
-  private _provider: ContextProvider<any, Partial<ReactiveControllerHost> & HTMLElement>;
-  private _consumer: ContextConsumer<{ __context__: ItemContext }, HostElement>;
-
-  set value(value: ContextType<C>) {
-    this._value = value;
-    this._provider.setValue(value);
-    this.host.requestUpdate();
+  public get value(): ItemContext {
+    return this._provider.value as ItemContext;
   }
-  get value(): ContextType<C> {
-    return this._value;
+
+  private _provider: ContextProvider<{ __context__: ItemContext }, HostElement>;
+  // private _consumer: ContextConsumer<{ __context__: ItemContext }, HostElement>;
+
+  updateValue(newValue: ItemContext) {
+    const oldValue = this._provider.value as ItemContext;
+    this._provider.setValue(newValue);
+    this.callback(newValue, oldValue, this.unsubscribe);
+    this.host.requestUpdate();
   }
 
   // private _initialContext: Readonly<ItemContext> = { ...this._context, variables: this._context.variables };
@@ -40,92 +36,42 @@ export class QtiItemContextConsumer<
   private debounceTimeout: NodeJS.Timeout;
   debounceResponseDelay: number = 500;
 
-  constructor(host: HostElement, options: Options<C>);
-  constructor(
-    host: HostElement,
-    context: C,
-    callback?: (value: ContextType<C>, dispose?: () => void) => void,
-    subscribe?: boolean
-  );
-  constructor(
-    host: HostElement,
-    contextOrOptions: C | Options<C>,
-    callback?: (value: ContextType<C>, dispose?: () => void) => void,
-    subscribe?: boolean
-  ) {
+  constructor(host: HostElement, options: Options<C>) {
     this.host = host;
-    if ((contextOrOptions as Options<C>).context !== undefined) {
-      const options = contextOrOptions as Options<C>;
-      this.context = options.context;
-      this.callback = options.callback;
-      this.subscribe = options.subscribe ?? false;
-    } else {
-      this.context = contextOrOptions as C;
-      this.callback = callback;
-      this.subscribe = subscribe ?? false;
-    }
+
+    this.callback = options.callback;
+
     this.host.addController(this);
+    this.attachListeners();
   }
 
   private unsubscribe?: () => void;
 
   hostConnected(): void {
-    let contextFound = false;
+    // let contextFound = false;
 
-    this._consumer = new ContextConsumer(this.host, {
+    // this._consumer = new ContextConsumer(this.host, {
+    //   context: itemContext,
+    //   subscribe: true,
+    //   callback: value => {
+    //     contextFound = true;
+    //     this.updateValue(value as ItemContext);
+    //   }
+    // });
+
+    // if (!contextFound) {
+
+    this._provider = new ContextProvider(this.host, {
       context: itemContext,
-      subscribe: true,
-      callback: value => {
-        contextFound = true;
-        this._callback(value as ContextType<C>);
-      }
-    });
-
-    if (!contextFound) {
-      this.attachListeners();
-
-        this._callback({
-          identifier: this.host.getAttribute('identifier') ?? '',
-          variables: itemContextVariables
-        } as ContextType<C>);
-
-      this._provider = new ContextProvider(this.host, { context: itemContext });
-      this.value = {
+      initialValue: {
         identifier: this.host.getAttribute('identifier') ?? '',
         variables: itemContextVariables
-      } as ContextType<C>;
-    }
+      }
+    }) as ContextProvider<{ __context__: ItemContext }, HostElement>;
+    // }
   }
 
-  hostDisconnected(): void {
-    if (this.unsubscribe) {
-      this.unsubscribe();
-      this.unsubscribe = undefined;
-    }
-  }
-
-  private _callback: ContextCallback<ContextType<C>> = (value, unsubscribe) => {
-    if (this.unsubscribe) {
-      if (this.unsubscribe !== unsubscribe) {
-        this.provided = false;
-        this.unsubscribe();
-      }
-      if (!this.subscribe) {
-        this.unsubscribe();
-      }
-    }
-    this._value = value;
-    this.host.requestUpdate();
-
-    if (!this.provided || this.subscribe) {
-      this.provided = true;
-      if (this.callback) {
-        this.callback(value, unsubscribe);
-      }
-    }
-
-    this.unsubscribe = unsubscribe;
-  };
+  hostDisconnected(): void {}
 
   attachListeners() {
     this.host.addEventListener(
@@ -135,19 +81,25 @@ export class QtiItemContextConsumer<
           variable: VariableDeclaration<string | string[]>;
         }>
       ) => {
-        this.value = { ...this._value, variables: [...this._value.variables, e.detail.variable] };
+        const context = this._provider.value as ItemContext;
+        this.updateValue({
+          ...context,
+          variables: [...context.variables, e.detail.variable]
+        });
 
         // this._initialContext = this._context;
         e.stopPropagation();
       }
     );
     this.host.addEventListener('qti-interaction-changed', (e: CustomEvent<InteractionChangedDetails>) => {
-      this.value = {
-        ...this._value,
-        variables: this._value.variables.map(v =>
+      console.log('qti-interaction-changed: controller ');
+
+      this.updateValue({
+        ...(this._provider.value as ItemContext),
+        variables: this._provider.value.variables.map(v =>
           v.identifier === e.detail.responseIdentifier ? { ...v, value: e.detail.response } : v
         )
-      };
+      });
       // this._initialContext = this._context;
       e.stopPropagation();
 
@@ -168,15 +120,15 @@ export class QtiItemContextConsumer<
     this.host.addEventListener('qti-outcome-changed', (e: CustomEvent<OutcomeChangedDetails>) => {
       this.batchedOutcomeEvents.push(e.detail);
 
-      const outcomeVariable = this.value.variables.find(v => v.identifier === e.detail.outcomeIdentifier);
+      const outcomeVariable = this._provider.value.variables.find(v => v.identifier === e.detail.outcomeIdentifier);
       if (!outcomeVariable) {
         console.warn(`Can not set qti-outcome-identifier: ${e.detail.outcomeIdentifier}, it is not available`);
         return;
       }
 
-      this.value = {
-        ...this._value,
-        variables: this._value.variables.map(v => {
+      this.updateValue({
+        ...this._provider.value,
+        variables: this._provider.value.variables.map(v => {
           if (v.identifier !== e.detail.outcomeIdentifier) {
             return v;
           }
@@ -185,7 +137,7 @@ export class QtiItemContextConsumer<
             value: outcomeVariable.cardinality === 'single' ? e.detail.value : [...v.value, e.detail.value as string]
           };
         })
-      };
+      });
 
       e.stopPropagation();
     });

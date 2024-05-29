@@ -1,5 +1,6 @@
-import { OutcomeVariable } from '@citolab/qti-components/qti-components';
-import { property } from 'lit/decorators.js';
+import { ItemContext, OutcomeVariable, itemContext } from '@citolab/qti-components/qti-components';
+import { consume } from '@lit/context';
+import { property, state } from 'lit/decorators.js';
 import { convertNumberToUniveralFormat } from '../../../internal/utils';
 import { QtiExpression } from '../../qti-expression/qti-expression';
 import { QtiRule } from '../qti-rule';
@@ -12,13 +13,17 @@ import { QtiRule } from '../qti-rule';
 export class QtiLookupOutcomeValue extends QtiRule {
   @property({ type: String }) identifier: string;
 
+  @consume({ context: itemContext, subscribe: true })
+  @state()
+  public itemContext?: ItemContext;
+
   get childExpression(): QtiExpression<string> {
     return this.firstElementChild as QtiExpression<string>;
   }
 
   public override process(): number {
     const identifier = this.getAttribute('identifier');
-    const outcomeVariable = this.closest('qti-assessment-item').getVariable(identifier) as OutcomeVariable;
+    const outcomeVariable = this.itemContext.variables.find(v => v.identifier === identifier) as OutcomeVariable;
     let value;
     if (outcomeVariable.interpolationTable) {
       value = outcomeVariable.interpolationTable.get(parseInt(this.childExpression.calculate()));
