@@ -1,13 +1,10 @@
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { itemContext } from './qti-item.context';
 import { QtiItemContextConsumer } from './qti-item.context.controller';
 
 @customElement('qti-item')
 export class QtiItem extends LitElement {
   private _controller = new QtiItemContextConsumer(this, {
-    context: itemContext,
-    subscribe: true,
     callback: value => console.log('QtiItem callback: ', value)
   });
 

@@ -26,10 +26,7 @@ test('qti-feedback-test-hide', async () => {
   const isFeedbackVisible = screen.getByTestId('feedback').shadowRoot.querySelector('slot');
 
   await fireEvent.click(choiceElement);
-
   expect(isFeedbackVisible).toHaveClass('off');
-
   await fireEvent.click(choiceElement);
-
   expect(isFeedbackVisible).toHaveClass('on');
 });

@@ -1,4 +1,4 @@
-import { qtiTransformItem, qtiTransformTest } from 'src/lib/qti-transformers';
+import { qtiTransformItem, qtiTransformTest } from '../lib/qti-transformers';
 
 export const fetchItem = async (
   packageUri: string,
