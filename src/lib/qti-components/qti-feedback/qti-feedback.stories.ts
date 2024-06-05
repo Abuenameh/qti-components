@@ -109,10 +109,11 @@ export const InlineFeedback: Story = {
 
     const choiceElement = canvas.getByTestId('choice');
     const isFeedbackVisible = canvas.getByTestId('feedback').shadowRoot.querySelector('slot');
-
     await userEvent.click(choiceElement);
+    await new Promise(resolve => setTimeout(resolve, 500));
     expect(isFeedbackVisible).toHaveClass('on');
     await userEvent.click(choiceElement);
+    await new Promise(resolve => setTimeout(resolve, 500));
     expect(isFeedbackVisible).toHaveClass('off');
   }
 };

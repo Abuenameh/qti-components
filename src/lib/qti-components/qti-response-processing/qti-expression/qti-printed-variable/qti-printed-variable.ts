@@ -1,3 +1,4 @@
+import { Signal } from '@lit-labs/preact-signals';
 import { consume } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { property, state } from 'lit/decorators.js';
@@ -7,12 +8,12 @@ export class QtPrintedVariable extends LitElement {
   @property({ type: String })
   identifier: string;
 
-  @consume({ context: itemContext, subscribe: true })
+  @consume({ context: itemContext })
   @state()
-  public itemContext?: ItemContext;
+  private itemContext?: Signal<ItemContext>;
 
   override render() {
-    const value = this.itemContext?.variables.find(v => v.identifier === this.identifier)?.value;
+    const value = this.itemContext?.value.variables.find(v => v.identifier === this.identifier)?.value;
     return html`${JSON.stringify(value, null, 2)}`;
   }
 
@@ -32,7 +33,7 @@ export class QtPrintedVariable extends LitElement {
   public calculate(): Readonly<string | string[]> {
     // const assessmentItem = this.closest('qti-assessment-item') as QtiAssessmentItem;
     // const identifier = this.identifier;
-    const result = this.itemContext?.variables.find(v => v.identifier === this.identifier)?.value;
+    const result = this.itemContext?.value.variables.find(v => v.identifier === this.identifier)?.value;
     return result;
   }
 }

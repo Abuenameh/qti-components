@@ -1,3 +1,4 @@
+import { Signal } from '@lit-labs/preact-signals';
 import { consume } from '@lit/context';
 import { LitElement } from 'lit';
 import { property, state } from 'lit/decorators.js';
@@ -17,9 +18,9 @@ export abstract class QtiFeedback extends LitElement {
   @property({ type: String, attribute: false })
   public showStatus: string;
 
-  @consume({ context: itemContext, subscribe: true })
+  @consume({ context: itemContext })
   @state()
-  private itemContext: ItemContext;
+  private itemContext: Signal<ItemContext>;
 
   public override connectedCallback() {
     super.connectedCallback();
@@ -35,7 +36,7 @@ export abstract class QtiFeedback extends LitElement {
 
   public checkShowFeedback(outcomeIdentifier: string) {
     // const outcomeVariable = (this.closest('qti-assessment-item') as QtiAssessmentItem).getOutcome(outcomeIdentifier);
-    const outcomeVariable = this.itemContext.variables.find(v => v.identifier === outcomeIdentifier);
+    const outcomeVariable = this.itemContext.value.variables.find(v => v.identifier === outcomeIdentifier);
 
     if (this.outcomeIdentifier !== outcomeIdentifier || !outcomeVariable) return;
     let isFound = false;

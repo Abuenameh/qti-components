@@ -1,3 +1,4 @@
+import { Signal } from '@lit-labs/preact-signals';
 import { createContext } from '@lit/context';
 import { VariableDeclaration } from '../internal/variables';
 
@@ -24,6 +25,6 @@ export const itemContextVariables = [
   }
 ] as VariableDeclaration<string | string[]>[];
 
-export const itemContext = createContext<ItemContext>(Symbol('item'));
+export const itemContext = createContext<Signal<ItemContext>>(Symbol('item'));
 
 // export const itemContext = identifier => createContext<ItemContext>(identifier);

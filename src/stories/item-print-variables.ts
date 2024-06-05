@@ -5,7 +5,7 @@ import { ItemContext, itemContext } from '../lib/qti-components/qti-item/qti-ite
 
 @customElement('item-print-variables')
 export class ItemPrintVariables extends LitElement {
-  @consume({ context: itemContext, subscribe: true })
+  @consume({ context: itemContext })
   @state()
   public itemContext?: ItemContext;
 

@@ -123,5 +123,8 @@
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.17.2"
   },
-  "customElements": "custom-elements.json"
+  "customElements": "custom-elements.json",
+  "dependencies": {
+    "@lit-labs/preact-signals": "^1.0.2"
+  }
 }

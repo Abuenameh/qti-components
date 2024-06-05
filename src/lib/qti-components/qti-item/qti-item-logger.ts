@@ -2,7 +2,6 @@ import { LitElement, html } from 'lit';
 import { customElement, queryAssignedElements, state } from 'lit/decorators.js';
 import { QtiAssessmentItem } from '../qti-assessment-item/qti-assessment-item';
 import { QtiItem } from './qti-item';
-import { ItemContext } from './qti-item.context';
 
 @customElement('qti-item-logger')
 export class QtiItemLogger extends LitElement {
@@ -14,8 +13,6 @@ export class QtiItemLogger extends LitElement {
 
   @state()
   arrayWithEvents = [];
-
-  providers: { cont: { __context__: ItemContext }; prov: ItemContext }[] = [];
 
   constructor() {
     super();

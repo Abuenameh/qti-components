@@ -39,21 +39,19 @@ export const Examples: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
     item && (item.disabled = disabled);
     return html`
-      <qti-item-logger>
-        <qti-item
-          class="item"
-          @qti-assessment-item-connected=${e => {
-            item = e.detail;
-            action('qti-assessment-item-connected')(e);
-          }}
-          @qti-response-changed=${action('qti-response-changed')}
-          @qti-outcomes-changed=${action('qti-outcomes-changed')}
-        >
-          ${xml.itemXML}
-
-          <!-- **<item-print-variables></item-print-variables>** -->
-        </qti-item>
-      </qti-item-logger>
+      <!-- <qti-item-logger> -->
+      <qti-item
+        class="item"
+        @qti-assessment-item-connected=${e => {
+          item = e.detail;
+          action('qti-assessment-item-connected')(e);
+        }}
+        @qti-response-changed=${action('qti-response-changed')}
+        @qti-outcomes-changed=${action('qti-outcomes-changed')}
+      >
+        ${xml.itemXML} **<item-print-variables></item-print-variables>**
+      </qti-item>
+      <!-- </qti-item-logger> -->
       <button @click=${() => item.processResponse()}>Submit</button>
     `;
   },

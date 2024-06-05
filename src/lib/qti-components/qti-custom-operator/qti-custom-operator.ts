@@ -4,6 +4,7 @@ import {
   type ItemContext,
   type ResponseVariable
 } from '@citolab/qti-components/qti-components';
+import { Signal } from '@lit-labs/preact-signals';
 import { consume } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -23,9 +24,9 @@ import { customElement, state } from 'lit/decorators.js';
 export class QtiCustomOperator extends LitElement implements Calculate {
   private operatorFunction: Function;
 
-  @consume({ context: itemContext, subscribe: true })
+  @consume({ context: itemContext })
   @state()
-  private _context?: ItemContext;
+  private itemContext?: Signal<ItemContext>;
 
   render() {
     return html`<slot @slotchange=${this.handleSlotChange}></slot>`;
@@ -46,14 +47,14 @@ export class QtiCustomOperator extends LitElement implements Calculate {
   public calculate() {
     const fn = {
       variable: (responseIdentifier: string) =>
-        this._context?.variables.find(v => v.identifier === responseIdentifier)?.value ?? '',
+        this.itemContext.value?.variables.find(v => v.identifier === responseIdentifier)?.value ?? '',
       correct: (responseIdentifier: string) =>
-        (this._context?.variables.find(v => v.identifier === responseIdentifier) as ResponseVariable)
+        (this.itemContext.value?.variables.find(v => v.identifier === responseIdentifier) as ResponseVariable)
           ?.correctResponse ?? ''
     };
     const item = {
       getVariable: (variableIdentifier: string) =>
-        this._context?.variables.find(v => v.identifier === variableIdentifier),
+        this.itemContext.value?.variables.find(v => v.identifier === variableIdentifier),
       updateOutcomeVariable: (outcomeIdentifier: string, value: string | string[]) => {
         this.dispatchEvent(
           new CustomEvent<{ outcomeIdentifier: string; value: string | string[] }>('qti-set-outcome-value', {
@@ -67,7 +68,7 @@ export class QtiCustomOperator extends LitElement implements Calculate {
         );
       }
     };
-    return this.operatorFunction(this._context, fn, item);
+    return this.operatorFunction(this.itemContext.value, fn, item);
   }
 }
 

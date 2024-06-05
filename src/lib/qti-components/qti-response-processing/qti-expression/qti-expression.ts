@@ -1,3 +1,4 @@
+import { Signal } from '@lit-labs/preact-signals';
 import { consume } from '@lit/context';
 import { LitElement, css, html } from 'lit';
 import { state } from 'lit/decorators.js';
@@ -16,9 +17,9 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
   @state()
   protected result: any;
 
-  @consume({ context: itemContext, subscribe: true })
+  @consume({ context: itemContext })
   @state()
-  protected itemContext: ItemContext;
+  protected itemContext?: Signal<ItemContext>;
 
   // hide the slot with css
   static styles = css`
@@ -61,7 +62,7 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
           }
           case 'qti-variable': {
             const identifier = e.getAttribute('identifier') || '';
-            const variable = this.itemContext.variables.find(v => v.identifier === identifier);
+            const variable = this.itemContext.value.variables.find(v => v.identifier === identifier);
             return variable;
           }
           case 'qti-multiple': {
@@ -80,7 +81,7 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
           }
           case 'qti-correct': {
             const identifier = e.getAttribute('identifier') || '';
-            const responseVariable = this.itemContext.variables.find(
+            const responseVariable = this.itemContext.value.variables.find(
               v => v.identifier === identifier
             ) as ResponseVariable;
             return {

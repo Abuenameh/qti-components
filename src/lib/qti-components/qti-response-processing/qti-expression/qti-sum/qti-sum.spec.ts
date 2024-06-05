@@ -1,5 +1,6 @@
 import { html, render } from 'lit';
 // import '../qti-basevalue/qti-basevalue';
+import { Signal } from '@lit-labs/preact-signals';
 import { ItemContext, QtiAssessmentItem } from 'src';
 import '../../../qti-assessment-item/qti-assessment-item';
 import '../../../qti-item/qti-item';
@@ -34,8 +35,8 @@ describe('QtiComponent qti-sum', () => {
 
     const qtiAssessmentItem = document.body.querySelector('qti-assessment-item') as QtiAssessmentItem;
     qtiAssessmentItem.processResponse();
-    const itemContext = (qtiAssessmentItem as any)._controller.value as ItemContext;
-    const scoreVariable = itemContext.variables.find(v => v.identifier === 'SCORE');
+    const itemContext = (qtiAssessmentItem as any).context as Signal<ItemContext>;
+    const scoreVariable = itemContext.value.variables.find(v => v.identifier === 'SCORE');
     expect(scoreVariable?.value).toEqual('3');
   });
 

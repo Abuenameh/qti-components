@@ -7,7 +7,7 @@ export class QtiMapResponse extends QtiExpression<number> {
   @property({ type: String }) identifier: string;
 
   public override getResult(): number {
-    const response = this.itemContext?.variables.find(v => v.identifier === this.identifier) as ResponseVariable;
+    const response = this.itemContext.value.variables.find(v => v.identifier === this.identifier) as ResponseVariable;
     if (!response) {
       console.warn(`Response ${this.identifier} can not be found`);
       return null;

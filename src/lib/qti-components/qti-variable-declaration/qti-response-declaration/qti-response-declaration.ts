@@ -1,3 +1,4 @@
+import { Signal } from '@lit-labs/preact-signals';
 import { consume } from '@lit/context';
 import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -15,9 +16,9 @@ export class QtiResponseDeclaration extends QtiVariableDeclaration {
 
   @property({ type: String }) cardinality: Cardinality;
 
-  @consume({ context: itemContext, subscribe: true })
+  @consume({ context: itemContext })
   @state()
-  public itemContext?: ItemContext;
+  private itemContext?: Signal<ItemContext>;
 
   static styles = [
     css`
@@ -28,7 +29,7 @@ export class QtiResponseDeclaration extends QtiVariableDeclaration {
   ];
 
   override render() {
-    const value = this.itemContext?.variables.find(v => v.identifier === this.identifier)?.value;
+    const value = this.itemContext?.value.variables.find(v => v.identifier === this.identifier)?.value;
     return html`${JSON.stringify(value, null, 2)}`;
   }
 

@@ -8,7 +8,9 @@ export class QtiCorrect extends QtiExpression<string | string[]> {
 
   override getResult() {
     const identifier = this.getAttribute('identifier') || '';
-    const responseVariable = this.itemContext.variables.find(v => v.identifier === identifier) as ResponseVariable;
+    const responseVariable = this.itemContext.value.variables.find(
+      v => v.identifier === identifier
+    ) as ResponseVariable;
     responseVariable.correctResponse;
     if (responseVariable.cardinality !== 'single') {
       return responseVariable.correctResponse.length > 0 ? responseVariable.correctResponse[0] : '';
