@@ -1,8 +1,7 @@
 import { Signal } from '@lit-labs/preact-signals';
 import type { ReactiveController } from '@lit/reactive-element';
 import { LitElement, ReactiveControllerHost } from 'lit';
-import { InteractionChangedDetails, OutcomeChangedDetails } from '../internal/event-types';
-import { VariableDeclaration } from '../internal/variables';
+import { InteractionChangedDetails, OutcomeChangedDetails, ResponseChangedDetails } from '../internal/event-types';
 import { ItemContext } from './qti-item.context';
 
 export class QtiItemContextConsumer implements ReactiveController {
@@ -15,6 +14,23 @@ export class QtiItemContextConsumer implements ReactiveController {
   constructor(host: ReactiveControllerHost & LitElement & { context }) {
     this.host = host;
     this.host.addController(this);
+
+    this.host.addEventListener('qti-outcomes-changed', (e: CustomEvent<OutcomeChangedDetails[]>) => {
+      console.log('qti-outcomes-changed', e.detail);
+    });
+
+    this.host.addEventListener(
+      'qti-responses-changed',
+      (
+        e: CustomEvent<{
+          responseIdentifier: string;
+          response: string;
+        }>
+      ) => {
+        console.log('qti-responses-changed', e.detail);
+      }
+    );
+
     this.attachListeners();
   }
 
@@ -25,31 +41,10 @@ export class QtiItemContextConsumer implements ReactiveController {
   }
 
   attachListeners() {
-    this.host.addEventListener(
-      'qti-register-variable',
-      (
-        e: CustomEvent<{
-          variable: VariableDeclaration<string | string[]>;
-        }>
-      ) => {
-        this.host.context.value = {
-          ...this.host.context.value,
-          variables: [...this.host.context.value.variables, e.detail.variable]
-        };
-
-        // this._initialContext = this._context;
-        e.stopPropagation();
-      }
-    );
     this.host.addEventListener('qti-interaction-changed', (e: CustomEvent<InteractionChangedDetails>) => {
-      console.log('qti-interaction-changed: controller ');
-
-      this.host.context.value = {
-        ...this.host.context.value,
-        variables: this.host.context.value.variables.map(v =>
-          v.identifier === e.detail.responseIdentifier ? { ...v, value: e.detail.response } : v
-        )
-      };
+      this.host.context.value = this.host.context.value.map(v =>
+        v.identifier === e.detail.responseIdentifier ? { ...v, value: e.detail.response } : v
+      );
       // this._initialContext = this._context;
       e.stopPropagation();
 
@@ -57,11 +52,13 @@ export class QtiItemContextConsumer implements ReactiveController {
       clearTimeout(this.debounceTimeout);
       this.debounceTimeout = setTimeout(() => {
         this.host.dispatchEvent(
-          new CustomEvent('qti-response-changed', {
-            detail: {
-              responseIdentifier: e.detail.responseIdentifier,
-              response: e.detail.response
-            },
+          new CustomEvent<ResponseChangedDetails[]>('qti-responses-changed', {
+            detail: [
+              {
+                responseIdentifier: e.detail.responseIdentifier,
+                value: e.detail.response
+              }
+            ],
             bubbles: true
           })
         );
@@ -70,24 +67,21 @@ export class QtiItemContextConsumer implements ReactiveController {
     this.host.addEventListener('qti-outcome-changed', (e: CustomEvent<OutcomeChangedDetails>) => {
       this.batchedOutcomeEvents.push(e.detail);
 
-      const outcomeVariable = this.host.context.value.variables.find(v => v.identifier === e.detail.outcomeIdentifier);
+      const outcomeVariable = this.host.context.value.find(v => v.identifier === e.detail.outcomeIdentifier);
       if (!outcomeVariable) {
         console.warn(`Can not set qti-outcome-identifier: ${e.detail.outcomeIdentifier}, it is not available`);
         return;
       }
 
-      this.host.context.value = {
-        ...this.host.context.value,
-        variables: this.host.context.value.variables.map(v => {
-          if (v.identifier !== e.detail.outcomeIdentifier) {
-            return v;
-          }
-          return {
-            ...v,
-            value: outcomeVariable.cardinality === 'single' ? e.detail.value : [...v.value, e.detail.value as string]
-          };
-        })
-      };
+      this.host.context.value = this.host.context.value.map(v => {
+        if (v.identifier !== e.detail.outcomeIdentifier) {
+          return v;
+        }
+        return {
+          ...v,
+          value: outcomeVariable.cardinality === 'single' ? e.detail.value : [...v.value, e.detail.value as string]
+        };
+      });
 
       e.stopPropagation();
     });

@@ -62,7 +62,7 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
           }
           case 'qti-variable': {
             const identifier = e.getAttribute('identifier') || '';
-            const variable = this.itemContext.value.variables.find(v => v.identifier === identifier);
+            const variable = this.itemContext.value.find(v => v.identifier === identifier);
             return variable;
           }
           case 'qti-multiple': {
@@ -81,9 +81,7 @@ export abstract class QtiExpression<T> extends LitElement implements QtiExpressi
           }
           case 'qti-correct': {
             const identifier = e.getAttribute('identifier') || '';
-            const responseVariable = this.itemContext.value.variables.find(
-              v => v.identifier === identifier
-            ) as ResponseVariable;
+            const responseVariable = this.itemContext.value.find(v => v.identifier === identifier) as ResponseVariable;
             return {
               baseType: responseVariable.baseType,
               value: responseVariable.correctResponse,

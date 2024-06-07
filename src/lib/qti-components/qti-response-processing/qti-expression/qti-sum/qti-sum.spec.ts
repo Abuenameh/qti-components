@@ -36,7 +36,7 @@ describe('QtiComponent qti-sum', () => {
     const qtiAssessmentItem = document.body.querySelector('qti-assessment-item') as QtiAssessmentItem;
     qtiAssessmentItem.processResponse();
     const itemContext = (qtiAssessmentItem as any).context as Signal<ItemContext>;
-    const scoreVariable = itemContext.value.variables.find(v => v.identifier === 'SCORE');
+    const scoreVariable = itemContext.value.find(v => v.identifier === 'SCORE');
     expect(scoreVariable?.value).toEqual('3');
   });
 

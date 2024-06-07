@@ -39,59 +39,22 @@ export const Examples: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
     item && (item.disabled = disabled);
     return html`
-      <!-- <qti-item-logger> -->
-      <qti-item
-        class="item"
-        @qti-assessment-item-connected=${e => {
-          item = e.detail;
-          action('qti-assessment-item-connected')(e);
-        }}
-        @qti-response-changed=${action('qti-response-changed')}
-        @qti-outcomes-changed=${action('qti-outcomes-changed')}
-      >
-        ${xml.itemXML} **<item-print-variables></item-print-variables>**
-      </qti-item>
-      <!-- </qti-item-logger> -->
-      <button @click=${() => item.processResponse()}>Submit</button>
-    `;
-  },
-  loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
-};
-
-export const Controller: Story = {
-  render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
-    item && (item.disabled = disabled);
-    return html`
-      <qti-item-logger
-        @qti-assessment-item-connected=${e => {
-          item = e.detail;
-          action('qti-assessment-item-connected')(e);
-        }}
-      >
-        ${xml.itemXML}
+      <qti-item-logger>
+        <qti-item
+          class="item"
+          @qti-assessment-item-connected=${e => {
+            item = e.target as QtiAssessmentItem;
+            action('qti-assessment-item-connected')(e);
+          }}
+          @qti-responses-changed=${action('qti-responses-changed')}
+          @qti-outcomes-changed=${action('qti-outcomes-changed')}
+        >
+          ${xml.itemXML}
+          <item-print-variables></item-print-variables>
+        </qti-item>
       </qti-item-logger>
       <button @click=${() => item.processResponse()}>Submit</button>
     `;
   },
   loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
 };
-
-// @qti-interaction-changed=${onInteractionChangedAction}
-// @qti-outcome-changed=${onOutcomeChangedAction}
-// @qti-assessment-item-connected=${onItemFirstUpdated}
-/*
-      <div
-        class="item"
-        @qti-assessment-item-connected=${e => {
-          item = e.detail;
-          action('qti-assessment-item-connected')(e);
-        }}
-        @qti-response-changed=${action('qti-response-changed')}
-        @qti-outcomes-changed=${action('qti-outcomes-changed')}
-      >
-        ${unsafeHTML(`
-        ${xml.itemXML}
-          <item-print-variables></item-print-variables>
-        `)}
-      </div>
-      */

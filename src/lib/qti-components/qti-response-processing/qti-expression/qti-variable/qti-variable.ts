@@ -3,7 +3,7 @@ import { QtiExpression } from '../qti-expression';
 export class QtiVariable extends QtiExpression<string | string[]> {
   public override getResult() {
     const identifier = this.getAttribute('identifier');
-    const result = this.itemContext.value.variables.find(v => v.identifier === identifier)?.value;
+    const result = this.itemContext.value.find(v => v.identifier === identifier)?.value;
     return result;
   }
 }

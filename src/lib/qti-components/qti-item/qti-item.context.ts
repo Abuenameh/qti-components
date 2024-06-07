@@ -2,11 +2,7 @@ import { Signal } from '@lit-labs/preact-signals';
 import { createContext } from '@lit/context';
 import { VariableDeclaration } from '../internal/variables';
 
-export interface ItemContext {
-  href?: string;
-  identifier: string;
-  variables: ReadonlyArray<VariableDeclaration<string | string[]>>;
-}
+export type ItemContext = ReadonlyArray<VariableDeclaration<string | string[]>>;
 
 export const itemContextVariables = [
   {
@@ -25,6 +21,4 @@ export const itemContextVariables = [
   }
 ] as VariableDeclaration<string | string[]>[];
 
-export const itemContext = createContext<Signal<ItemContext>>(Symbol('item'));
-
-// export const itemContext = identifier => createContext<ItemContext>(identifier);
+export const itemContext = createContext<Signal<ItemContext>>(Symbol('itemContext'));

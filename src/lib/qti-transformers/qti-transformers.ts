@@ -192,9 +192,9 @@ function itemsFromTest(xmlFragment: DocumentFragment) {
 let currentRequest: XMLHttpRequest | null = null;
 
 function loadXML(url) {
-  if (currentRequest !== null) {
-    currentRequest.abort(); // Abort the ongoing request if there is one
-  }
+  // if (currentRequest !== null) {
+  //   currentRequest.abort(); // Abort the ongoing request if there is one
+  // }
 
   return new Promise<XMLDocument | null>((resolve, reject) => {
     const xhr = new XMLHttpRequest();

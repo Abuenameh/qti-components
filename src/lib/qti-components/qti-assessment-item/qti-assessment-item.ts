@@ -51,43 +51,13 @@ export class QtiAssessmentItem extends LitElement {
     this._interactionElements.forEach(ch => (ch.readonly = readonly));
 
   @provide({ context: itemContext })
-  @property({ type: Object, attribute: false })
-  public context: Signal<ItemContext> = signal({
-    identifier: this.getAttribute('identifier'),
-    variables: itemContextVariables
-  });
+  public context: Signal<ItemContext> = signal(itemContextVariables);
 
   private _controller = new QtiItemContextConsumer(this);
 
-  updated(changedProperties: Map<string | number | symbol, unknown>): void {
-    if (changedProperties.has('_context')) {
-      const oldContext = changedProperties.get('_context') as ItemContext;
-      this.context.value.variables.forEach(variable => {
-        const oldValue = oldContext?.variables?.find(v => v.identifier === variable.identifier)?.value;
-        if (variable.type === 'response') {
-          const responseVariable = variable as ResponseVariable;
-          if (responseVariable.value !== oldValue) {
-            const interaction = this._interactionElements.find(
-              (el: Interaction) => el.responseIdentifier === responseVariable.identifier
-            );
-            if (interaction) {
-              interaction.response = responseVariable.value;
-            }
-          }
-        }
-
-        if (variable.type === 'outcome') {
-          const outcomeVariable = variable as OutcomeVariable;
-          if (outcomeVariable.value !== oldValue) {
-            this._feedbackElements.forEach(fe => fe.checkShowFeedback(outcomeVariable.identifier));
-          }
-        }
-      });
-    }
-  }
-
   constructor() {
     super();
+
     this.addEventListener('qti-register-feedback', (e: CustomEvent<QtiFeedback>) => {
       e.stopPropagation();
       const feedbackElement = e.detail;
@@ -119,8 +89,34 @@ export class QtiAssessmentItem extends LitElement {
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
 
+    this.context.subscribe(() => {
+      this.context.value.forEach(variable => {
+        // const oldValue = oldContext?.variables?.find(v => v.identifier === variable.identifier)?.value;
+        if (variable.type === 'response') {
+          const responseVariable = variable as ResponseVariable;
+          if (responseVariable.value) {
+            // !== oldValue) {
+            const interaction = this._interactionElements.find(
+              (el: Interaction) => el.responseIdentifier === responseVariable.identifier
+            );
+            if (interaction) {
+              interaction.response = responseVariable.value;
+            }
+          }
+        }
+
+        if (variable.type === 'outcome') {
+          const outcomeVariable = variable as OutcomeVariable;
+          if (outcomeVariable.value) {
+            // !== oldValue) {
+            this._feedbackElements.forEach(fe => fe.checkShowFeedback(outcomeVariable.identifier));
+          }
+        }
+      });
+    });
+
     await this.updateComplete;
-    this._emit<{ detail: QtiAssessmentItem }>('qti-assessment-item-connected', this);
+    this._emit<{ detail: Signal<ItemContext> }>('qti-assessment-item-connected', this.context);
   }
 
   override render() {
@@ -128,11 +124,11 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public get variables(): VariableValue<string | string[] | null>[] {
-    return this.context.value.variables.map(v => ({ identifier: v.identifier, value: v.value, type: v.type }));
+    return this.context.value.map(v => ({ identifier: v.identifier, value: v.value, type: v.type }));
   }
 
   public showCorrectResponse(show: boolean) {
-    const responseVariables = this.context.value.variables.filter(
+    const responseVariables = this.context.value.filter(
       (vari: ResponseVariable | OutcomeVariable) => 'correctResponse' in vari && vari.correctResponse
     ) as ResponseVariable[];
     const responses = responseVariables.map(cr => {
@@ -171,7 +167,7 @@ export class QtiAssessmentItem extends LitElement {
     countNumAttempts &&
       this.updateOutcomeVariable(
         'numAttempts',
-        (+this.context.value.variables.find(v => v.identifier === 'numAttempts')?.value + 1).toString()
+        (+this.context.value.find(v => v.identifier === 'numAttempts')?.value + 1).toString()
       );
 
     this._emit('qti-response-processed');
@@ -187,7 +183,7 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public getVariable(identifier: string): Readonly<VariableDeclaration<string | string[] | null>> {
-    const variable = this.context.value.variables.find(v => v.identifier === identifier);
+    const variable = this.context.value.find(v => v.identifier === identifier);
     return variable;
   }
 

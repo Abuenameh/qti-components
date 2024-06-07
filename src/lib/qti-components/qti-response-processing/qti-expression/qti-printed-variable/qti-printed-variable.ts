@@ -13,7 +13,7 @@ export class QtPrintedVariable extends LitElement {
   private itemContext?: Signal<ItemContext>;
 
   override render() {
-    const value = this.itemContext?.value.variables.find(v => v.identifier === this.identifier)?.value;
+    const value = this.itemContext?.value.find(v => v.identifier === this.identifier)?.value;
     return html`${JSON.stringify(value, null, 2)}`;
   }
 
@@ -33,7 +33,7 @@ export class QtPrintedVariable extends LitElement {
   public calculate(): Readonly<string | string[]> {
     // const assessmentItem = this.closest('qti-assessment-item') as QtiAssessmentItem;
     // const identifier = this.identifier;
-    const result = this.itemContext?.value.variables.find(v => v.identifier === this.identifier)?.value;
+    const result = this.itemContext?.value.find(v => v.identifier === this.identifier)?.value;
     return result;
   }
 }

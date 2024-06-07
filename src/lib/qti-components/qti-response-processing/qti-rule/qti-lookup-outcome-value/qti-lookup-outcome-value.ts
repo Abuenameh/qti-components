@@ -24,7 +24,7 @@ export class QtiLookupOutcomeValue extends QtiRule {
 
   public override process(): number {
     const identifier = this.getAttribute('identifier');
-    const outcomeVariable = this.itemContext.value.variables.find(v => v.identifier === identifier) as OutcomeVariable;
+    const outcomeVariable = this.itemContext.value.find(v => v.identifier === identifier) as OutcomeVariable;
     let value;
     if (outcomeVariable.interpolationTable) {
       value = outcomeVariable.interpolationTable.get(parseInt(this.childExpression.calculate()));

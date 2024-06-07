@@ -27,7 +27,7 @@ export class QtiOutcomeDeclaration extends QtiVariableDeclaration {
   ];
 
   override render() {
-    const value = this.itemContext?.value.variables.find(v => v.identifier === this.identifier)?.value;
+    const value = this.itemContext?.value.find(v => v.identifier === this.identifier)?.value;
     return html`${JSON.stringify(value, null, 2)}`;
   }
 
@@ -64,13 +64,7 @@ export class QtiOutcomeDeclaration extends QtiVariableDeclaration {
     };
     outcomeVariable.value = this.defaultValues(outcomeVariable);
 
-    this.dispatchEvent(
-      new CustomEvent('qti-register-variable', {
-        bubbles: true,
-        composed: true,
-        detail: { variable: outcomeVariable }
-      })
-    );
+    this.itemContext.value = [...this.itemContext.value, outcomeVariable];
   }
 }
 

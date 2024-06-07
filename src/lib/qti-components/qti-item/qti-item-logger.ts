@@ -1,26 +1,28 @@
 import { LitElement, html } from 'lit';
 import { customElement, queryAssignedElements, state } from 'lit/decorators.js';
+import { OutcomeChangedDetails, ResponseChangedDetails } from '../internal/event-types';
 import { QtiAssessmentItem } from '../qti-assessment-item/qti-assessment-item';
 import { QtiItem } from './qti-item';
 
 @customElement('qti-item-logger')
 export class QtiItemLogger extends LitElement {
-  @queryAssignedElements({ flatten: true, selector: 'qti-assessment-item' })
-  itemConsumer: Array<QtiAssessmentItem>;
-
   @queryAssignedElements({ flatten: true, selector: 'qti-item' })
   providerItem: Array<QtiItem>;
 
   @state()
   arrayWithEvents = [];
+  assessmentItem: QtiAssessmentItem;
 
   constructor() {
     super();
-    this.addEventListener('qti-response-changed', (event: CustomEvent) => {
-      this.arrayWithEvents = [...this.arrayWithEvents, event.detail];
+    this.addEventListener('qti-responses-changed', (event: CustomEvent<ResponseChangedDetails[]>) => {
+      this.arrayWithEvents = [...this.arrayWithEvents, { name: 'qti-responses-changed', payload: event.detail }];
     });
-    this.addEventListener('qti-outcomes-changed', (event: CustomEvent) => {
-      this.arrayWithEvents = [...this.arrayWithEvents, event.detail];
+    this.addEventListener('qti-outcomes-changed', (event: CustomEvent<OutcomeChangedDetails[]>) => {
+      this.arrayWithEvents = [...this.arrayWithEvents, { name: 'qti-outcomes-changed', payload: event.detail }];
+    });
+    this.addEventListener('qti-assessment-item-connected', (event: CustomEvent) => {
+      this.assessmentItem = event.target as QtiAssessmentItem;
     });
   }
 
@@ -28,7 +30,7 @@ export class QtiItemLogger extends LitElement {
     const eventsUntilEventIndex = this.arrayWithEvents.slice(0, eventIndex);
 
     eventsUntilEventIndex.forEach(event => {
-      this.providerItem[0].dispatchEvent(new CustomEvent('response-event', { detail: event }));
+      this.assessmentItem.dispatchEvent(new CustomEvent(event.name, { detail: event.payload }));
     });
   }
 

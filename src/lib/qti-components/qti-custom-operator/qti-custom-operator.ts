@@ -47,14 +47,14 @@ export class QtiCustomOperator extends LitElement implements Calculate {
   public calculate() {
     const fn = {
       variable: (responseIdentifier: string) =>
-        this.itemContext.value?.variables.find(v => v.identifier === responseIdentifier)?.value ?? '',
+        this.itemContext.value?.find(v => v.identifier === responseIdentifier)?.value ?? '',
       correct: (responseIdentifier: string) =>
-        (this.itemContext.value?.variables.find(v => v.identifier === responseIdentifier) as ResponseVariable)
-          ?.correctResponse ?? ''
+        (this.itemContext.value?.find(v => v.identifier === responseIdentifier) as ResponseVariable)?.correctResponse ??
+        ''
     };
     const item = {
       getVariable: (variableIdentifier: string) =>
-        this.itemContext.value?.variables.find(v => v.identifier === variableIdentifier),
+        this.itemContext.value?.find(v => v.identifier === variableIdentifier),
       updateOutcomeVariable: (outcomeIdentifier: string, value: string | string[]) => {
         this.dispatchEvent(
           new CustomEvent<{ outcomeIdentifier: string; value: string | string[] }>('qti-set-outcome-value', {
