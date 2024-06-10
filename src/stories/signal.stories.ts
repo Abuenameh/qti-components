@@ -2,7 +2,7 @@ import '@citolab/qti-components/qti-components';
 import type { Meta, StoryObj } from '@storybook/web-components';
 import './item-print-variables';
 
-import { QtiAssessmentItem, QtiItem } from '@citolab/qti-components/qti-components';
+import { QtiItem } from '@citolab/qti-components/qti-components';
 import { Signal, computed, html, signal } from '@lit-labs/preact-signals';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import packages from '../assets/packages.json';
@@ -33,7 +33,6 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-const item: QtiAssessmentItem | null = null;
 const itemRef: Ref<QtiItem> = createRef();
 
 const context: Signal<
@@ -45,12 +44,14 @@ const context: Signal<
 
 const events: Signal = signal([]);
 
-const addOrUpdateContextOfItem = () => {
+const hasState = () => context.value.find(v => v.identifier === itemRef.value.identifier);
+const updateState = () => {
   const existing = context.value.find(v => v.identifier === itemRef.value.identifier);
-  existing && itemRef.value.setVariableValues(existing.variables.peek());
-
+  itemRef.value.setVariableValues(existing.variables.peek());
+};
+const createState = () => {
   context.value = [
-    ...context.peek().filter(v => v.identifier !== itemRef.value.identifier),
+    ...context.peek(),
     { identifier: itemRef.value.identifier, variables: itemRef.value.getVariableValuesSignal() }
   ];
 };
@@ -69,7 +70,7 @@ const addEvent = (type, detail, identifier) =>
 
 export const Signals: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
-    item && (item.disabled = disabled);
+    itemRef.value && (itemRef.value.disabled = disabled);
 
     return html`
       <pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre>
@@ -77,10 +78,7 @@ export const Signals: Story = {
       <qti-item
         ${ref(itemRef)}
         class="item"
-        @qti-assessment-item-connected=${e => {
-          // item = e.target as QtiAssessmentItem;
-          addOrUpdateContextOfItem();
-        }}
+        @qti-assessment-item-connected=${() => (hasState() ? updateState() : createState())}
         @qti-responses-changed=${e => addEvent(e.type, e.detail, e.currentTarget.identifier)}
         @qti-outcomes-changed=${e => addEvent(e.type, e.detail, e.currentTarget.identifier)}
       >
@@ -91,7 +89,7 @@ export const Signals: Story = {
       <h3>Log data:</h3>
       <pre>${computed(() => JSON.stringify(events.value).split(',').join(',\n'))}</pre>
 
-      <button @click=${() => item.processResponse()}>Submit</button>
+      <button @click=${() => itemRef.value.processResponse()}>Submit</button>
     `;
   },
   loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
