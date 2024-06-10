@@ -19,13 +19,13 @@ export class QtiItem extends SignalWatcher(LitElement) {
     return this.qtiAssessmentItem.identifier;
   }
 
-  getVariableValuesSignal() {
+  get stateSignal() {
     return computed(() =>
       this.qtiAssessmentItem.context.value.map(v => ({ identifier: v.identifier, value: v.value }))
     );
   }
 
-  setVariableValues(variables: { identifier: string; value: Readonly<string | string[]> }[]) {
+  set state(variables: { identifier: string; value: Readonly<string | string[]> }[]) {
     this.qtiAssessmentItem.context.value = this.qtiAssessmentItem.context.peek().map(v => {
       const existingVariable = variables.find(e => e.identifier === v.identifier);
       return existingVariable ? { ...v, value: existingVariable.value } : v;
@@ -67,14 +67,14 @@ export class QtiItem extends SignalWatcher(LitElement) {
   }
 
   private handleOutcomesChanged(e: CustomEvent<OutcomeChangedDetails[]>) {
-    this.updateContextValues('qti-outcomes-changed', e.detail);
+    this.event('qti-outcomes-changed', e.detail);
   }
 
   private handleResponsesChanged(e: CustomEvent<ResponseChangedDetails[]>) {
-    this.updateContextValues('qti-responses-changed', e.detail);
+    this.event('qti-responses-changed', e.detail);
   }
 
-  public updateContextValues(
+  public event(
     type: 'qti-outcomes-changed' | 'qti-responses-changed',
     variableMap: OutcomeChangedDetails[] | ResponseChangedDetails[]
   ) {

@@ -36,14 +36,14 @@ type Story = StoryObj;
 
 const context: Signal<
   {
-    identifier: string;
+    itemIdentifier: string;
     variables: Signal<{ identifier: string; value: Readonly<string | string[]> }[]>;
     initial: { identifier: string; value: Readonly<string | string[]> }[];
   }[]
 > = signal([]);
 const events: Signal<
   {
-    identifier: string;
+    itemIdentifier: string;
     event: {
       type: string;
       detail: { responseIdentifier: string; value: string };
@@ -51,18 +51,18 @@ const events: Signal<
   }[]
 > = signal([]);
 
-const hasState = () => context.value.find(v => v.identifier === itemRef.value.identifier);
+const hasState = () => context.value.find(v => v.itemIdentifier === itemRef.value.identifier);
 const updateState = () => {
-  const existing = context.value.find(v => v.identifier === itemRef.value.identifier);
-  itemRef.value.setVariableValues(existing.variables.peek());
+  const existing = context.value.find(v => v.itemIdentifier === itemRef.value.identifier);
+  itemRef.value.state = existing.variables.peek();
 };
 const createState = () => {
   context.value = [
     ...context.peek(),
     {
-      identifier: itemRef.value.identifier,
-      variables: itemRef.value.getVariableValuesSignal(),
-      initial: itemRef.value.getVariableValuesSignal().peek()
+      itemIdentifier: itemRef.value.identifier,
+      variables: itemRef.value.stateSignal,
+      initial: itemRef.value.stateSignal.peek()
     }
   ];
 };
@@ -71,7 +71,7 @@ const addEvent = (type, detail, identifier) =>
   (events.value = [
     ...events.peek(),
     {
-      identifier,
+      itemIdentifier: identifier,
       event: {
         type,
         detail
@@ -82,15 +82,15 @@ const addEvent = (type, detail, identifier) =>
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(itemCSS);
 
-const maxRange = computed(() => events.value.filter(e => e.identifier === itemRef.value.identifier).length);
-const currentRange = computed(() => events.value.filter(e => e.identifier === itemRef.value.identifier).length);
+const maxRange = computed(() => events.value.filter(e => e.itemIdentifier === itemRef.value.identifier).length);
+const currentRange = computed(() => events.value.filter(e => e.itemIdentifier === itemRef.value.identifier).length);
 const changeRange = (eventIndex: number) => {
   const myEvents = events
     .peek()
-    .filter(e => e.identifier === itemRef.value.identifier)
+    .filter(e => e.itemIdentifier === itemRef.value.identifier)
     .slice(0, eventIndex);
-  itemRef.value.setVariableValues(context.value.find(v => v.identifier === itemRef.value.identifier).initial);
-  myEvents.forEach(ev => itemRef.value.updateContextValues(ev.event.type as any, ev.event.detail as any));
+  itemRef.value.state = context.value.find(v => v.itemIdentifier === itemRef.value.identifier).initial;
+  myEvents.forEach(ev => itemRef.value.event(ev.event.type as any, ev.event.detail as any));
 };
 
 const itemRef: Ref<QtiItem> = createRef();
@@ -103,8 +103,8 @@ export const Signals: Story = {
         type="range"
         @input=${e => changeRange(e.target.value)}
         min="0"
-        max=${maxRange}
-        value=${currentRange}
+        max=${maxRange as any}
+        value=${currentRange as any}
       />${maxRange}/${currentRange}
 
       <small><pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre></small>
