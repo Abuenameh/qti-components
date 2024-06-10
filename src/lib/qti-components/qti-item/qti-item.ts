@@ -115,10 +115,6 @@ export class QtiItem extends SignalWatcher(LitElement) {
   }
 }
 
-// <h1>QTI Item</h1>
-//
-// ${this.item}
-
 declare global {
   interface HTMLElementTagNameMap {
     'qti-item': QtiItem;

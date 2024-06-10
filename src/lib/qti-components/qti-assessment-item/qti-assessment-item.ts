@@ -11,7 +11,6 @@ import type { QtiFeedback } from '../qti-feedback/qti-feedback';
 import type { Interaction } from '../qti-interaction/internal/interaction/interaction';
 import type { QtiResponseProcessing } from '../qti-response-processing';
 import { ItemContext, itemContext, itemContextVariables } from './qti-item.context';
-import { QtiItemContextConsumer } from './qti-item.context.controller';
 
 /**
  * @summary The qti-assessment-item element contains all the other QTI 3 item structures.
@@ -52,8 +51,6 @@ export class QtiAssessmentItem extends LitElement {
 
   @provide({ context: itemContext })
   public context: Signal<ItemContext> = signal(itemContextVariables);
-
-  private _controller = new QtiItemContextConsumer(this);
 
   public a = 0;
 
