@@ -3,7 +3,7 @@ import { action } from '@storybook/addon-actions';
 import type { Meta, StoryObj } from '@storybook/web-components';
 import './item-print-variables';
 
-import { QtiAssessmentItem } from '@citolab/qti-components/qti-components';
+import { QtiAssessmentItem, QtiItem } from '@citolab/qti-components/qti-components';
 import { Signal, computed, html, signal } from '@lit-labs/preact-signals';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import packages from '../assets/packages.json';
@@ -99,43 +99,33 @@ export const Logger: Story = {
       const eventsUntilEventIndex = events.peek().slice(0, eventIndex);
 
       eventsUntilEventIndex.forEach(event => {
-        inputRef.value.dispatchEvent(new CustomEvent(event.name, { detail: event.payload }));
+        itemRef.value.dispatchEvent(new CustomEvent(event.name, { detail: event.payload }));
       });
     };
-    const inputRef: Ref<HTMLInputElement> = createRef();
+    const itemRef: Ref<QtiItem> = createRef();
 
-    const addOrUpdateContextOfItem = (qtiAssessmentItem: QtiAssessmentItem) => {
-      const existing = context.value.find(v => v.identifier === qtiAssessmentItem.identifier);
-
-      const variables = computed(() =>
-        qtiAssessmentItem.context.value.map(v => ({ identifier: v.identifier, value: v.value }))
-      );
+    const addOrUpdateContextOfItem = () => {
+      const existing = context.value.find(v => v.identifier === itemRef.value.identifier);
 
       if (existing) {
-        qtiAssessmentItem.context.value = qtiAssessmentItem.context.value.map(v => {
-          const existingVariable = existing.variables.value.find(e => e.identifier === v.identifier);
-          return existingVariable ? { ...v, value: existingVariable.value } : v;
-        });
+        itemRef.value.setVariableValues(existing.variables.peek());
       }
 
       context.value = [
-        ...context.peek().filter(v => v.identifier !== qtiAssessmentItem.identifier),
-        { identifier: qtiAssessmentItem.identifier, variables }
+        ...context.peek().filter(v => v.identifier !== itemRef.value.identifier),
+        { identifier: itemRef.value.identifier, variables: itemRef.value.getVariableValuesSignal() }
       ];
     };
 
     return html`
       <pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre>
 
-      <slot></slot>
-
       <qti-item
-        ${ref(inputRef)}
+        ${ref(itemRef)}
         class="item"
         @qti-assessment-item-connected=${e => {
-          item = e.target as QtiAssessmentItem;
-          addOrUpdateContextOfItem(item);
-          action('qti-assessment-item-connected')(e);
+          // item = e.target as QtiAssessmentItem;
+          addOrUpdateContextOfItem();
         }}
         @qti-responses-changed=${e =>
           (events.value = [...events.peek(), { name: 'qti-responses-changed', payload: e.detail }])}
