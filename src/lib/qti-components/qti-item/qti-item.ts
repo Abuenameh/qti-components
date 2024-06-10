@@ -3,7 +3,13 @@ import { LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { InteractionChangedDetails, OutcomeChangedDetails, ResponseChangedDetails } from '../internal/event-types';
 import { QtiAssessmentItem } from '../qti-assessment-item/qti-assessment-item';
+import { ItemContext } from '../qti-assessment-item/qti-item.context';
 
+export type ItemState = { identifier: string; value: Readonly<string | string[]> };
+export type ItemEvent = {
+  type: 'qti-outcomes-changed' | 'qti-responses-changed';
+  detail: OutcomeChangedDetails[] | ResponseChangedDetails[];
+};
 @customElement('qti-item')
 export class QtiItem extends SignalWatcher(LitElement) {
   static shadowRootOptions = { ...LitElement.shadowRootOptions, mode: 'open' as any, delegatesFocus: false };
@@ -19,29 +25,30 @@ export class QtiItem extends SignalWatcher(LitElement) {
     return this.qtiAssessmentItem.identifier;
   }
 
-  get stateSignal() {
+  get itemSignal(): Signal<ItemContext> {
+    console.warn('itemSignal is not recommended if you dont know what you are doing,\n Use stateSignal instead.');
+    return this.qtiAssessmentItem.context;
+  }
+
+  get stateSignal(): Signal<ItemState[]> {
     return computed(() =>
       this.qtiAssessmentItem.context.value.map(v => ({ identifier: v.identifier, value: v.value }))
     );
   }
 
-  set state(variables: { identifier: string; value: Readonly<string | string[]> }[]) {
+  get state(): ItemState[] {
+    return this.qtiAssessmentItem.context.peek().map(v => ({ identifier: v.identifier, value: v.value }));
+  }
+
+  set state(variables: ItemState[]) {
     this.qtiAssessmentItem.context.value = this.qtiAssessmentItem.context.peek().map(v => {
       const existingVariable = variables.find(e => e.identifier === v.identifier);
       return existingVariable ? { ...v, value: existingVariable.value } : v;
     });
   }
 
-  processResponse() {
-    this.qtiAssessmentItem.processResponse();
-  }
-
   set disabled(value: boolean) {
     this.qtiAssessmentItem.disabled = value;
-  }
-
-  get dataset() {
-    return this.qtiAssessmentItem.dataset;
   }
 
   set stylesheet(value: CSSStyleSheet[]) {
@@ -66,19 +73,12 @@ export class QtiItem extends SignalWatcher(LitElement) {
     });
   }
 
-  private handleOutcomesChanged(e: CustomEvent<OutcomeChangedDetails[]>) {
-    this.event('qti-outcomes-changed', e.detail);
+  process(): boolean {
+    return this.qtiAssessmentItem.processResponse();
   }
 
-  private handleResponsesChanged(e: CustomEvent<ResponseChangedDetails[]>) {
-    this.event('qti-responses-changed', e.detail);
-  }
-
-  public event(
-    type: 'qti-outcomes-changed' | 'qti-responses-changed',
-    variableMap: OutcomeChangedDetails[] | ResponseChangedDetails[]
-  ) {
-    const mappie = variableMap.map(d => ({
+  event({ type, detail }: ItemEvent) {
+    const mappie = detail.map(d => ({
       variableIdentifier: type == 'qti-outcomes-changed' ? d.outcomeIdentifier : d.responseIdentifier,
       value: d.value
     }));
@@ -94,6 +94,14 @@ export class QtiItem extends SignalWatcher(LitElement) {
       });
     });
     this.qtiAssessmentItem.context.value = updatedContext;
+  }
+
+  private handleOutcomesChanged(e: CustomEvent<OutcomeChangedDetails[]>) {
+    this.event({ type: 'qti-outcomes-changed', detail: e.detail });
+  }
+
+  private handleResponsesChanged(e: CustomEvent<ResponseChangedDetails[]>) {
+    this.event({ type: 'qti-responses-changed', detail: e.detail });
   }
 
   private handleResponseProcessed() {
@@ -144,24 +152,28 @@ export class QtiItem extends SignalWatcher(LitElement) {
     e.stopPropagation();
   }
 
-  handleOutcomesChangedBinded = this.handleOutcomesChanged.bind(this);
-  handleResponsesChangedBinded = this.handleResponsesChanged.bind(this);
+  private handleOutcomesChangedBinded = this.handleOutcomesChanged.bind(this);
+  private handleResponsesChangedBinded = this.handleResponsesChanged.bind(this);
+  private handleOutcomeChangedBinded = this.handleOutcomeChanged.bind(this);
+  private handleResponseProcessedBinded = this.handleResponseProcessed.bind(this);
+  private handleInteractionChangedBinded = this.handleInteractionChanged.bind(this);
+
   connectedCallback() {
     super.connectedCallback();
     this.addEventListener('qti-outcomes-changed', this.handleOutcomesChangedBinded);
     this.addEventListener('qti-responses-changed', this.handleResponsesChangedBinded);
-    this.shadowRoot.addEventListener('qti-outcome-changed', this.handleOutcomeChanged.bind(this));
-    this.shadowRoot.addEventListener('qti-response-processed', this.handleResponseProcessed.bind(this));
-    this.shadowRoot.addEventListener('qti-interaction-changed', this.handleInteractionChanged.bind(this));
+    this.shadowRoot.addEventListener('qti-outcome-changed', this.handleOutcomeChangedBinded);
+    this.shadowRoot.addEventListener('qti-response-processed', this.handleResponseProcessedBinded);
+    this.shadowRoot.addEventListener('qti-interaction-changed', this.handleInteractionChangedBinded);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this.removeEventListener('qti-outcomes-changed', this.handleOutcomesChangedBinded);
     this.removeEventListener('qti-responses-changed', this.handleResponsesChangedBinded);
-    this.shadowRoot.removeEventListener('qti-outcome-changed', this.handleOutcomeChanged.bind(this));
-    this.shadowRoot.removeEventListener('qti-response-processed', this.handleResponseProcessed.bind(this));
-    this.shadowRoot.removeEventListener('qti-interaction-changed', this.handleInteractionChanged.bind(this));
+    this.shadowRoot.removeEventListener('qti-outcome-changed', this.handleOutcomeChangedBinded);
+    this.shadowRoot.removeEventListener('qti-response-processed', this.handleResponseProcessedBinded);
+    this.shadowRoot.removeEventListener('qti-interaction-changed', this.handleInteractionChangedBinded);
   }
 
   render() {

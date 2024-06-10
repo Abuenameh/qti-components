@@ -2,8 +2,8 @@ import '@citolab/qti-components/qti-components';
 import type { Meta, StoryObj } from '@storybook/web-components';
 import './item-print-variables';
 
-import { QtiItem } from '@citolab/qti-components/qti-components';
-import { Signal, computed, html, signal } from '@lit-labs/preact-signals';
+import { ItemEvent, ItemState, QtiItem } from '@citolab/qti-components/qti-components';
+import { Signal, batch, computed, html, signal } from '@lit-labs/preact-signals';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import packages from '../assets/packages.json';
 import { fetchItem } from './fetch-item';
@@ -37,25 +37,21 @@ type Story = StoryObj;
 const context: Signal<
   {
     itemIdentifier: string;
-    variables: Signal<{ identifier: string; value: Readonly<string | string[]> }[]>;
-    initial: { identifier: string; value: Readonly<string | string[]> }[];
+    variables: Signal<ItemState[]>;
+    initial: ItemState[];
   }[]
 > = signal([]);
 const events: Signal<
   {
     itemIdentifier: string;
-    event: {
-      type: string;
-      detail: { responseIdentifier: string; value: string };
-    };
+    event: ItemEvent;
   }[]
 > = signal([]);
 
 const hasState = () => context.value.find(v => v.itemIdentifier === itemRef.value.identifier);
-const updateState = () => {
-  const existing = context.value.find(v => v.itemIdentifier === itemRef.value.identifier);
-  itemRef.value.state = existing.variables.peek();
-};
+const updateState = () =>
+  (itemRef.value.state = context.value.find(v => v.itemIdentifier === itemRef.value.identifier).variables.peek());
+
 const createState = () => {
   context.value = [
     ...context.peek(),
@@ -90,7 +86,7 @@ const changeRange = (eventIndex: number) => {
     .filter(e => e.itemIdentifier === itemRef.value.identifier)
     .slice(0, eventIndex);
   itemRef.value.state = context.value.find(v => v.itemIdentifier === itemRef.value.identifier).initial;
-  myEvents.forEach(ev => itemRef.value.event(ev.event.type as any, ev.event.detail as any));
+  batch(() => myEvents.forEach(ev => itemRef.value.event(ev.event)));
 };
 
 const itemRef: Ref<QtiItem> = createRef();
@@ -120,7 +116,7 @@ export const Signals: Story = {
       >
       </qti-item>
 
-      <button @click=${() => itemRef.value.processResponse()}>Submit</button>
+      <button @click=${() => itemRef.value.process()}>Submit</button>
 
       <small><pre>${computed(() => JSON.stringify(events.value, null, 4))}</pre></small>
     `;
