@@ -4,15 +4,12 @@ import { customElement } from 'lit/decorators.js';
 import { InteractionChangedDetails, OutcomeChangedDetails, ResponseChangedDetails } from '../internal/event-types';
 import { QtiAssessmentItem } from '../qti-assessment-item/qti-assessment-item';
 
-type ShadowRootMode = 'closed' | 'open';
-
 @customElement('qti-item')
 export class QtiItem extends SignalWatcher(LitElement) {
   static shadowRootOptions = { ...LitElement.shadowRootOptions, mode: 'closed' as any, delegatesFocus: false };
   private batchedOutcomeEvents: OutcomeChangedDetails[] = [];
   private debounceTimeout: NodeJS.Timeout;
   debounceResponseDelay: number = 500;
-  // public item: DocumentFragment | HTMLElement;
 
   constructor() {
     super();
@@ -43,7 +40,7 @@ export class QtiItem extends SignalWatcher(LitElement) {
 
       qtiAssessmentItem.addEventListener('qti-response-processed', () => {
         qtiAssessmentItem.dispatchEvent(
-          new CustomEvent('qti-outcomes-changed', {
+          new CustomEvent<OutcomeChangedDetails[]>('qti-outcomes-changed', {
             detail: this.batchedOutcomeEvents,
             bubbles: true
           })
