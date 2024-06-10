@@ -31,20 +31,25 @@ const meta: Meta = {
     }
   }
 };
-
 export default meta;
 type Story = StoryObj;
-
-const itemRef: Ref<QtiItem> = createRef();
 
 const context: Signal<
   {
     identifier: string;
     variables: Signal<{ identifier: string; value: Readonly<string | string[]> }[]>;
+    initial: { identifier: string; value: Readonly<string | string[]> }[];
   }[]
 > = signal([]);
-
-const events: Signal = signal([]);
+const events: Signal<
+  {
+    identifier: string;
+    event: {
+      type: string;
+      detail: { responseIdentifier: string; value: string };
+    };
+  }[]
+> = signal([]);
 
 const hasState = () => context.value.find(v => v.identifier === itemRef.value.identifier);
 const updateState = () => {
@@ -54,7 +59,11 @@ const updateState = () => {
 const createState = () => {
   context.value = [
     ...context.peek(),
-    { identifier: itemRef.value.identifier, variables: itemRef.value.getVariableValuesSignal() }
+    {
+      identifier: itemRef.value.identifier,
+      variables: itemRef.value.getVariableValuesSignal(),
+      initial: itemRef.value.getVariableValuesSignal().peek()
+    }
   ];
 };
 
@@ -70,17 +79,35 @@ const addEvent = (type, detail, identifier) =>
     }
   ]);
 
-const stylesheet = new CSSStyleSheet();
-
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(itemCSS);
 
+const maxRange = computed(() => events.value.filter(e => e.identifier === itemRef.value.identifier).length);
+const currentRange = computed(() => events.value.filter(e => e.identifier === itemRef.value.identifier).length);
+const changeRange = (eventIndex: number) => {
+  const myEvents = events
+    .peek()
+    .filter(e => e.identifier === itemRef.value.identifier)
+    .slice(0, eventIndex);
+  itemRef.value.setVariableValues(context.value.find(v => v.identifier === itemRef.value.identifier).initial);
+  myEvents.forEach(ev => itemRef.value.updateContextValues(ev.event.type as any, ev.event.detail as any));
+};
+
+const itemRef: Ref<QtiItem> = createRef();
 export const Signals: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
     itemRef.value && (itemRef.value.disabled = disabled);
 
     return html`
-      <pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre>
+      <input
+        type="range"
+        @input=${e => changeRange(e.target.value)}
+        min="0"
+        max=${maxRange}
+        value=${currentRange}
+      />${maxRange}/${currentRange}
+
+      <small><pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre></small>
 
       <qti-item
         ${ref(itemRef)}
@@ -93,27 +120,10 @@ export const Signals: Story = {
       >
       </qti-item>
 
-      <h3>Log data:</h3>
-      <pre>${computed(() => JSON.stringify(events.value).split(',').join(',\n'))}</pre>
-
       <button @click=${() => itemRef.value.processResponse()}>Submit</button>
+
+      <small><pre>${computed(() => JSON.stringify(events.value, null, 4))}</pre></small>
     `;
   },
   loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
 };
-
-// <input
-// type="range"
-// @input=${e => changeRange(e.target.value)}
-// min="0"
-// .max=${computed(() => events.value.length)}
-// .value=${computed(() => events.value.length - 1)}
-// />
-
-// const changeRange = (eventIndex: number) => {
-//     const eventsUntilEventIndex = events.peek().slice(0, eventIndex);
-
-//     eventsUntilEventIndex.forEach(event => {
-//       itemRef.value.dispatchEvent(new CustomEvent(event.name, { detail: event.payload }));
-//     });
-//   };

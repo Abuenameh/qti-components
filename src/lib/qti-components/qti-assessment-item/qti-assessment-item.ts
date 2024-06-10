@@ -94,27 +94,25 @@ export class QtiAssessmentItem extends LitElement {
 
     this.context.subscribe(() => {
       this.context.value.forEach(variable => {
-        if (variable.value) {
-          switch (variable.type) {
-            case 'response':
-              {
-                const interaction = this._interactionElements.find(
-                  (el: Interaction) => el.responseIdentifier === variable.identifier
-                );
-                if (interaction && interaction.response !== variable.value) {
-                  interaction.response = variable.value;
-                }
+        switch (variable.type) {
+          case 'response':
+            {
+              const interaction = this._interactionElements.find(
+                (el: Interaction) => el.responseIdentifier === variable.identifier
+              );
+              if (interaction && interaction.response !== variable.value) {
+                interaction.response = variable.value || '';
               }
-              break;
+            }
+            break;
 
-            case 'outcome':
-              this._feedbackElements.forEach(fe => fe.checkShowFeedback(variable.identifier));
-              break;
+          case 'outcome':
+            this._feedbackElements.forEach(fe => fe.checkShowFeedback(variable.identifier));
+            break;
 
-            default:
-              // Handle other cases if necessary
-              break;
-          }
+          default:
+            // Handle other cases if necessary
+            break;
         }
       });
     });

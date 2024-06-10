@@ -1,4 +1,4 @@
-import { Signal, SignalWatcher, computed, html } from '@lit-labs/preact-signals';
+import { Signal, SignalWatcher, batch, computed, html } from '@lit-labs/preact-signals';
 import { LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { InteractionChangedDetails, OutcomeChangedDetails, ResponseChangedDetails } from '../internal/event-types';
@@ -67,23 +67,31 @@ export class QtiItem extends SignalWatcher(LitElement) {
   }
 
   private handleOutcomesChanged(e: CustomEvent<OutcomeChangedDetails[]>) {
-    const updatedContext = this.qtiAssessmentItem.context.value.map(v => {
-      const matchingDetail = e.detail.find(d => d.outcomeIdentifier === v.identifier);
-      if (matchingDetail) {
-        return { ...v, value: matchingDetail.value };
-      }
-      return v;
-    });
-    this.qtiAssessmentItem.context.value = updatedContext;
+    this.updateContextValues('qti-outcomes-changed', e.detail);
   }
 
   private handleResponsesChanged(e: CustomEvent<ResponseChangedDetails[]>) {
-    const updatedContext = this.qtiAssessmentItem.context.value.map(v => {
-      const matchingDetail = e.detail.find(d => d.responseIdentifier === v.identifier);
-      if (matchingDetail) {
-        return { ...v, value: matchingDetail.value };
-      }
-      return v;
+    this.updateContextValues('qti-responses-changed', e.detail);
+  }
+
+  public updateContextValues(
+    type: 'qti-outcomes-changed' | 'qti-responses-changed',
+    variableMap: OutcomeChangedDetails[] | ResponseChangedDetails[]
+  ) {
+    const mappie = variableMap.map(d => ({
+      variableIdentifier: type == 'qti-outcomes-changed' ? d.outcomeIdentifier : d.responseIdentifier,
+      value: d.value
+    }));
+
+    let updatedContext;
+    batch(() => {
+      updatedContext = this.qtiAssessmentItem.context.value.map(v => {
+        const matchingDetail = mappie.find(d => d.variableIdentifier === v.identifier);
+        if (matchingDetail) {
+          return { ...v, value: matchingDetail.value };
+        }
+        return v;
+      });
     });
     this.qtiAssessmentItem.context.value = updatedContext;
   }
@@ -136,25 +144,24 @@ export class QtiItem extends SignalWatcher(LitElement) {
     e.stopPropagation();
   }
 
+  handleOutcomesChangedBinded = this.handleOutcomesChanged.bind(this);
+  handleResponsesChangedBinded = this.handleResponsesChanged.bind(this);
   connectedCallback() {
     super.connectedCallback();
+    this.addEventListener('qti-outcomes-changed', this.handleOutcomesChangedBinded);
+    this.addEventListener('qti-responses-changed', this.handleResponsesChangedBinded);
     this.shadowRoot.addEventListener('qti-outcome-changed', this.handleOutcomeChanged.bind(this));
-    this.shadowRoot.addEventListener('qti-outcomes-changed', this.handleOutcomesChanged.bind(this));
-    this.shadowRoot.addEventListener('qti-responses-changed', this.handleResponsesChanged.bind(this));
     this.shadowRoot.addEventListener('qti-response-processed', this.handleResponseProcessed.bind(this));
     this.shadowRoot.addEventListener('qti-interaction-changed', this.handleInteractionChanged.bind(this));
-    // other event listeners...
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.removeEventListener('qti-outcomes-changed', this.handleOutcomesChangedBinded);
+    this.removeEventListener('qti-responses-changed', this.handleResponsesChangedBinded);
     this.shadowRoot.removeEventListener('qti-outcome-changed', this.handleOutcomeChanged.bind(this));
-    this.shadowRoot.removeEventListener('qti-outcomes-changed', this.handleOutcomesChanged.bind(this));
-    this.shadowRoot.removeEventListener('qti-responses-changed', this.handleResponsesChanged.bind(this));
     this.shadowRoot.removeEventListener('qti-response-processed', this.handleResponseProcessed.bind(this));
     this.shadowRoot.removeEventListener('qti-interaction-changed', this.handleInteractionChanged.bind(this));
-
-    // remove other event listeners...
   }
 
   render() {
