@@ -8,6 +8,8 @@ import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import packages from '../assets/packages.json';
 import { fetchItem } from './fetch-item';
 
+import itemCSS from '../item.css?inline';
+
 const meta: Meta = {
   title: 'Examples',
   argTypes: {
@@ -68,6 +70,11 @@ const addEvent = (type, detail, identifier) =>
     }
   ]);
 
+const stylesheet = new CSSStyleSheet();
+
+const sheet = new CSSStyleSheet();
+sheet.replaceSync(itemCSS);
+
 export const Signals: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
     itemRef.value && (itemRef.value.disabled = disabled);
@@ -77,13 +84,13 @@ export const Signals: Story = {
 
       <qti-item
         ${ref(itemRef)}
+        .stylesheet=${[sheet]}
         class="item"
-        @qti-assessment-item-connected=${() => (hasState() ? updateState() : createState())}
+        @qti-item-connected=${() => (hasState() ? updateState() : createState())}
         @qti-responses-changed=${e => addEvent(e.type, e.detail, e.currentTarget.identifier)}
         @qti-outcomes-changed=${e => addEvent(e.type, e.detail, e.currentTarget.identifier)}
+        .item=${xml.itemXML}
       >
-        ${xml.itemXML}
-        <item-print-variables></item-print-variables>
       </qti-item>
 
       <h3>Log data:</h3>
