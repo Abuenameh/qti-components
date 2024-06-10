@@ -2,7 +2,7 @@ import { Signal } from '@lit-labs/preact-signals';
 import { consume } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { ItemContext, itemContext } from '../../../qti-item/qti-item.context';
+import { ItemContext, itemContext } from '../../../qti-assessment-item/qti-item.context';
 
 export class QtPrintedVariable extends LitElement {
   @property({ type: String })

@@ -4,7 +4,7 @@ import { css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { BaseType, Cardinality } from '../../internal/expression-result';
 import { OutcomeVariable } from '../../internal/variables';
-import { ItemContext, itemContext } from '../../qti-item/qti-item.context';
+import { ItemContext, itemContext } from '../../qti-assessment-item/qti-item.context';
 import { QtiVariableDeclaration } from '../qti-variable-declaration';
 
 @customElement('qti-outcome-declaration')

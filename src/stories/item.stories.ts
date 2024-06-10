@@ -35,7 +35,29 @@ type Story = StoryObj;
 
 let item: QtiAssessmentItem | null = null;
 
-export const Examples: Story = {
+export const Default: Story = {
+  render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
+    item && (item.disabled = disabled);
+    return html`
+      <div
+        class="item"
+        @qti-assessment-item-connected=${e => {
+          item = e.target as QtiAssessmentItem;
+          action('qti-assessment-item-connected')(e);
+        }}
+        @qti-interaction-changed=${action('qti-interaction-changed')}
+        @qti-outcome-changed=${action('qti-outcome-changed')}
+      >
+        ${xml.itemXML}
+        <item-print-variables></item-print-variables>
+      </div>
+      <button @click=${() => item.processResponse()}>Submit</button>
+    `;
+  },
+  loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
+};
+
+export const Wrapper: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
     item && (item.disabled = disabled);
     return html`
@@ -58,3 +80,5 @@ export const Examples: Story = {
   },
   loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
 };
+
+// .item=${xml.itemXML}

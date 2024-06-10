@@ -1,4 +1,4 @@
-import { Signal, signal } from '@lit-labs/preact-signals';
+import { Signal, batch, signal } from '@lit-labs/preact-signals';
 import { provide } from '@lit/context';
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -9,9 +9,9 @@ import type { VariableDeclaration, VariableValue } from '../internal/variables';
 import { OutcomeVariable, ResponseVariable } from '../internal/variables';
 import type { QtiFeedback } from '../qti-feedback/qti-feedback';
 import type { Interaction } from '../qti-interaction/internal/interaction/interaction';
-import { ItemContext, itemContext, itemContextVariables } from '../qti-item/qti-item.context';
-import { QtiItemContextConsumer } from '../qti-item/qti-item.context.controller';
 import type { QtiResponseProcessing } from '../qti-response-processing';
+import { ItemContext, itemContext, itemContextVariables } from './qti-item.context';
+import { QtiItemContextConsumer } from './qti-item.context.controller';
 
 /**
  * @summary The qti-assessment-item element contains all the other QTI 3 item structures.
@@ -55,8 +55,14 @@ export class QtiAssessmentItem extends LitElement {
 
   private _controller = new QtiItemContextConsumer(this);
 
+  public a = 0;
+
   constructor() {
     super();
+
+    this.context.subscribe(() => {
+      console.log('context changed', this.a++);
+    });
 
     this.addEventListener('qti-register-feedback', (e: CustomEvent<QtiFeedback>) => {
       e.stopPropagation();
@@ -91,25 +97,26 @@ export class QtiAssessmentItem extends LitElement {
 
     this.context.subscribe(() => {
       this.context.value.forEach(variable => {
-        // const oldValue = oldContext?.variables?.find(v => v.identifier === variable.identifier)?.value;
-        if (variable.type === 'response') {
-          const responseVariable = variable as ResponseVariable;
-          if (responseVariable.value) {
-            // !== oldValue) {
-            const interaction = this._interactionElements.find(
-              (el: Interaction) => el.responseIdentifier === responseVariable.identifier
-            );
-            if (interaction) {
-              interaction.response = responseVariable.value;
-            }
-          }
-        }
+        if (variable.value) {
+          switch (variable.type) {
+            case 'response':
+              {
+                const interaction = this._interactionElements.find(
+                  (el: Interaction) => el.responseIdentifier === variable.identifier
+                );
+                if (interaction && interaction.response !== variable.value) {
+                  interaction.response = variable.value;
+                }
+              }
+              break;
 
-        if (variable.type === 'outcome') {
-          const outcomeVariable = variable as OutcomeVariable;
-          if (outcomeVariable.value) {
-            // !== oldValue) {
-            this._feedbackElements.forEach(fe => fe.checkShowFeedback(outcomeVariable.identifier));
+            case 'outcome':
+              this._feedbackElements.forEach(fe => fe.checkShowFeedback(variable.identifier));
+              break;
+
+            default:
+              // Handle other cases if necessary
+              break;
           }
         }
       });
@@ -156,20 +163,20 @@ export class QtiAssessmentItem extends LitElement {
       console.info('Client side response webcomponents not available');
       return false;
     }
+    batch(() => {
+      responseProcessor.process();
 
-    responseProcessor.process();
+      if (this.adaptive === 'false') {
+        // if adapative, completionStatus is set by the processing template
+        this.updateOutcomeVariable('completionStatus', this._getCompletionStatus());
+      }
 
-    if (this.adaptive === 'false') {
-      // if adapative, completionStatus is set by the processing template
-      this.updateOutcomeVariable('completionStatus', this._getCompletionStatus());
-    }
-
-    countNumAttempts &&
-      this.updateOutcomeVariable(
-        'numAttempts',
-        (+this.context.value.find(v => v.identifier === 'numAttempts')?.value + 1).toString()
-      );
-
+      countNumAttempts &&
+        this.updateOutcomeVariable(
+          'numAttempts',
+          (+this.context.value.find(v => v.identifier === 'numAttempts')?.value + 1).toString()
+        );
+    });
     this._emit('qti-response-processed');
     return true;
   }
