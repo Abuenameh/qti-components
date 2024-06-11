@@ -17,7 +17,14 @@ export const itemContextVariables = [
     cardinality: 'single',
     baseType: 'integer',
     value: '0',
-    type: 'outcome'
+    type: 'response'
+  },
+  {
+    identifier: 'duration',
+    cardinality: 'single',
+    baseType: 'integer',
+    value: '0',
+    type: 'response'
   }
 ] as VariableDeclaration<string | string[]>[];
 

@@ -52,14 +52,14 @@ export class QtiAssessmentItem extends LitElement {
   @provide({ context: itemContext })
   public context: Signal<ItemContext> = signal(itemContextVariables);
 
-  public a = 0;
+  // public a = 0;
 
   constructor() {
     super();
 
-    this.context.subscribe(() => {
-      console.log('context changed', this.a++);
-    });
+    // this.context.subscribe(() => {
+    //   console.log('context changed', this.a++);
+    // });
 
     this.addEventListener('qti-register-feedback', (e: CustomEvent<QtiFeedback>) => {
       e.stopPropagation();
@@ -101,13 +101,16 @@ export class QtiAssessmentItem extends LitElement {
                 (el: Interaction) => el.responseIdentifier === variable.identifier
               );
               if (interaction && interaction.response !== variable.value) {
-                interaction.response = variable.value || '';
+                interaction.response = variable.value;
               }
             }
             break;
 
           case 'outcome':
-            this._feedbackElements.forEach(fe => fe.checkShowFeedback(variable.identifier));
+            {
+              // console.log('checkfeedback');
+              this._feedbackElements.forEach(fe => fe.checkShowFeedback(variable.identifier));
+            }
             break;
 
           default:
@@ -167,7 +170,7 @@ export class QtiAssessmentItem extends LitElement {
       }
 
       countNumAttempts &&
-        this.updateOutcomeVariable(
+        this.updateResponseVariable(
           'numAttempts',
           (+this.context.value.find(v => v.identifier === 'numAttempts')?.value + 1).toString()
         );
@@ -197,6 +200,18 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public updateResponseVariable(identifier: string, value: string | string[] | undefined) {
+    const responseVariable = this.context.value.find(v => v.identifier === identifier);
+
+    this.context.value = this.context.value.map(v => {
+      if (v.identifier !== identifier) {
+        return v;
+      }
+      return {
+        ...v,
+        value: responseVariable.cardinality === 'single' ? value : [...v.value, value as string]
+      };
+    });
+
     this._emit<InteractionChangedDetails>('qti-interaction-changed', {
       item: this.identifier,
       responseIdentifier: identifier,
@@ -210,6 +225,18 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public updateOutcomeVariable(identifier: string, value: string | string[] | undefined) {
+    const outcomeVariable = this.context.value.find(v => v.identifier === identifier);
+
+    this.context.value = this.context.value.map(v => {
+      if (v.identifier !== identifier) {
+        return v;
+      }
+      return {
+        ...v,
+        value: outcomeVariable.cardinality === 'single' ? value : [...v.value, value as string]
+      };
+    });
+
     this._emit<OutcomeChangedDetails>('qti-outcome-changed', {
       item: this.identifier,
       outcomeIdentifier: identifier,

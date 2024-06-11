@@ -2,7 +2,7 @@ import '@citolab/qti-components/qti-components';
 import type { Meta, StoryObj } from '@storybook/web-components';
 import './item-print-variables';
 
-import { ItemEvent, ItemState, QtiItem } from '@citolab/qti-components/qti-components';
+import { ItemEvent, QtiItem, VariableValues } from '@citolab/qti-components/qti-components';
 import { Signal, batch, computed, html, signal } from '@lit-labs/preact-signals';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import packages from '../assets/packages.json';
@@ -37,8 +37,8 @@ type Story = StoryObj;
 const context: Signal<
   {
     itemIdentifier: string;
-    variables: Signal<ItemState[]>;
-    initial: ItemState[];
+    variables: Signal<VariableValues[]>;
+    initial: VariableValues[];
   }[]
 > = signal([]);
 const events: Signal<
@@ -49,9 +49,20 @@ const events: Signal<
 > = signal([]);
 
 const hasState = () => context.value.find(v => v.itemIdentifier === itemRef.value.identifier);
-const updateState = () =>
-  (itemRef.value.state = context.value.find(v => v.itemIdentifier === itemRef.value.identifier).variables.peek());
+const updateState = () => {
+  const existing = context.peek().find(v => v.itemIdentifier === itemRef.value.identifier);
+  itemRef.value.variables = existing.variables.peek();
 
+  context.value = context.value.map(v => {
+    if (v.itemIdentifier === itemRef.value.identifier) {
+      return {
+        ...v,
+        variables: itemRef.value.stateSignal
+      };
+    }
+    return v;
+  });
+};
 const createState = () => {
   context.value = [
     ...context.peek(),
@@ -85,11 +96,17 @@ const changeRange = (eventIndex: number) => {
     .peek()
     .filter(e => e.itemIdentifier === itemRef.value.identifier)
     .slice(0, eventIndex);
-  itemRef.value.state = context.value.find(v => v.itemIdentifier === itemRef.value.identifier).initial;
+  itemRef.value.variables = context.value.find(v => v.itemIdentifier === itemRef.value.identifier).initial;
   batch(() => myEvents.forEach(ev => itemRef.value.event(ev.event)));
 };
 
 const itemRef: Ref<QtiItem> = createRef();
+
+let a = 0;
+context.subscribe(() => {
+  console.log('context changed', a++, context);
+});
+
 export const Signals: Story = {
   render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
     itemRef.value && (itemRef.value.disabled = disabled);
@@ -101,9 +118,7 @@ export const Signals: Story = {
         min="0"
         max=${maxRange as any}
         value=${currentRange as any}
-      />${maxRange}/${currentRange}
-
-      <small><pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre></small>
+      />
 
       <qti-item
         ${ref(itemRef)}
@@ -117,9 +132,10 @@ export const Signals: Story = {
       </qti-item>
 
       <button @click=${() => itemRef.value.process()}>Submit</button>
-
-      <small><pre>${computed(() => JSON.stringify(events.value, null, 4))}</pre></small>
     `;
   },
   loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
 };
+
+// <small><pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre></small>
+// <small><pre>${computed(() => JSON.stringify(events.value, null, 4))}</pre></small>

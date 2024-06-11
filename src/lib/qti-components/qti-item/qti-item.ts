@@ -3,9 +3,8 @@ import { LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { InteractionChangedDetails, OutcomeChangedDetails, ResponseChangedDetails } from '../internal/event-types';
 import { QtiAssessmentItem } from '../qti-assessment-item/qti-assessment-item';
-import { ItemContext } from '../qti-assessment-item/qti-item.context';
 
-export type ItemState = { identifier: string; value: Readonly<string | string[]> };
+export type VariableValues = { identifier: string; value: Readonly<string | string[]> };
 export type ItemEvent = {
   type: 'qti-outcomes-changed' | 'qti-responses-changed';
   detail: OutcomeChangedDetails[] | ResponseChangedDetails[];
@@ -25,22 +24,22 @@ export class QtiItem extends SignalWatcher(LitElement) {
     return this.qtiAssessmentItem.identifier;
   }
 
-  get itemSignal(): Signal<ItemContext> {
-    console.warn('itemSignal is not recommended if you dont know what you are doing,\n Use stateSignal instead.');
-    return this.qtiAssessmentItem.context;
-  }
+  // get itemSignal(): Signal<ItemContext> {
+  //   console.warn('itemSignal is not recommended if you dont know what you are doing,\n Use stateSignal instead.');
+  //   return this.qtiAssessmentItem.context;
+  // }
 
-  get stateSignal(): Signal<ItemState[]> {
+  get stateSignal(): Signal<VariableValues[]> {
     return computed(() =>
       this.qtiAssessmentItem.context.value.map(v => ({ identifier: v.identifier, value: v.value }))
     );
   }
 
-  get state(): ItemState[] {
-    return this.qtiAssessmentItem.context.peek().map(v => ({ identifier: v.identifier, value: v.value }));
-  }
+  // get state(): ItemState[] {
+  //   return this.qtiAssessmentItem.context.peek().map(v => ({ identifier: v.identifier, value: v.value }));
+  // }
 
-  set state(variables: ItemState[]) {
+  set variables(variables: VariableValues[]) {
     this.qtiAssessmentItem.context.value = this.qtiAssessmentItem.context.peek().map(v => {
       const existingVariable = variables.find(e => e.identifier === v.identifier);
       return existingVariable ? { ...v, value: existingVariable.value } : v;
@@ -97,11 +96,11 @@ export class QtiItem extends SignalWatcher(LitElement) {
   }
 
   private handleOutcomesChanged(e: CustomEvent<OutcomeChangedDetails[]>) {
-    this.event({ type: 'qti-outcomes-changed', detail: e.detail });
+    // this.event({ type: 'qti-outcomes-changed', detail: e.detail });
   }
 
   private handleResponsesChanged(e: CustomEvent<ResponseChangedDetails[]>) {
-    this.event({ type: 'qti-responses-changed', detail: e.detail });
+    // this.event({ type: 'qti-responses-changed', detail: e.detail });
   }
 
   private handleResponseProcessed() {
@@ -136,18 +135,6 @@ export class QtiItem extends SignalWatcher(LitElement) {
 
   private handleOutcomeChanged(e: CustomEvent<OutcomeChangedDetails>) {
     this.batchedOutcomeEvents.push(e.detail);
-
-    const outcomeVariable = this.qtiAssessmentItem.context.value.find(v => v.identifier === e.detail.outcomeIdentifier);
-
-    this.qtiAssessmentItem.context.value = this.qtiAssessmentItem.context.value.map(v => {
-      if (v.identifier !== e.detail.outcomeIdentifier) {
-        return v;
-      }
-      return {
-        ...v,
-        value: outcomeVariable.cardinality === 'single' ? e.detail.value : [...v.value, e.detail.value as string]
-      };
-    });
 
     e.stopPropagation();
   }

@@ -49,32 +49,7 @@ export const Default: Story = {
         @qti-outcome-changed=${action('qti-outcome-changed')}
       >
         ${xml.itemXML}
-        <item-print-variables></item-print-variables>
       </div>
-      <button @click=${() => item.processResponse()}>Submit</button>
-    `;
-  },
-  loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
-};
-
-export const Wrapper: Story = {
-  render: ({ disabled, view }, { argTypes, loaded: { xml } }) => {
-    item && (item.disabled = disabled);
-    return html`
-      <qti-item-logger>
-        <qti-item
-          class="item"
-          @qti-assessment-item-connected=${e => {
-            item = e.target as QtiAssessmentItem;
-            action('qti-assessment-item-connected')(e);
-          }}
-          @qti-responses-changed=${action('qti-responses-changed')}
-          @qti-outcomes-changed=${action('qti-outcomes-changed')}
-        >
-          ${xml.itemXML}
-          <item-print-variables></item-print-variables>
-        </qti-item>
-      </qti-item-logger>
       <button @click=${() => item.processResponse()}>Submit</button>
     `;
   },

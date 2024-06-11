@@ -13,7 +13,7 @@ export class QtiFeedbackInline extends QtiFeedback {
     }
   `;
 
-  override render = () => html` <slot part="feedback" class="${this.showStatus}"></slot> `;
+  override render = () => html` <slot part="feedback" class=${this.showStatus}></slot> `;
 }
 
 declare global {

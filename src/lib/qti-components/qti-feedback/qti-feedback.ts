@@ -2,7 +2,6 @@ import { Signal } from '@lit-labs/preact-signals';
 import { consume } from '@lit/context';
 import { LitElement } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { IsNullOrUndefined } from '../internal/utils';
 import { ItemContext, itemContext } from '../qti-item';
 
 export abstract class QtiFeedback extends LitElement {
@@ -35,21 +34,17 @@ export abstract class QtiFeedback extends LitElement {
   }
 
   public checkShowFeedback(outcomeIdentifier: string) {
-    // const outcomeVariable = (this.closest('qti-assessment-item') as QtiAssessmentItem).getOutcome(outcomeIdentifier);
+    // this.itemContext.subscribe(() => {
     const outcomeVariable = this.itemContext.value.find(v => v.identifier === outcomeIdentifier);
 
     if (this.outcomeIdentifier !== outcomeIdentifier || !outcomeVariable) return;
-    let isFound = false;
-    if (Array.isArray(outcomeVariable.value)) {
-      isFound = outcomeVariable.value.includes(this.identifier);
-    } else {
-      isFound =
-        (!IsNullOrUndefined(this.identifier) &&
-          !IsNullOrUndefined(outcomeVariable?.value) &&
-          this.identifier === outcomeVariable.value) ||
-        false;
-    }
+
+    const isFound = Array.isArray(outcomeVariable.value)
+      ? outcomeVariable.value.includes(this.identifier)
+      : this.identifier !== null && outcomeVariable.value !== null && this.identifier === outcomeVariable.value;
+
     this.showFeedback(isFound);
+    // });
   }
 
   private showFeedback(value: boolean) {

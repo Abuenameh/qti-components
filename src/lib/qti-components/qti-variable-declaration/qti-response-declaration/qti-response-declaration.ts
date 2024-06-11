@@ -42,7 +42,7 @@ export class QtiResponseDeclaration extends QtiVariableDeclaration {
       correctResponse: this.correctResponse,
       cardinality: this.cardinality || 'single',
       mapping: this.mapping,
-      value: null,
+      value: '',
       type: 'response',
       candidateResponse: null
     };
