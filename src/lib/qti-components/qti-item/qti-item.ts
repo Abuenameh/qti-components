@@ -20,7 +20,7 @@ export class QtiItem extends SignalWatcher(LitElement) {
   @state()
   public item: DocumentFragment | HTMLElement;
 
-  get identifier() {
+  get itemIdentifier() {
     return this.qtiAssessmentItem.identifier;
   }
 
