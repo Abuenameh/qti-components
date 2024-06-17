@@ -68,14 +68,14 @@ export default defineConfig({
     drag: `    bordered p-lg rounded-md inline-block cursor-grab bg-white font-semibold handle`,
     drop: `    bordered rounded-lg border-solid relative bg-gray-50 m-px`,
     order: `   bg-primary rounded-full h-6 w-6  text-white`,
-    check: `   flex items-center gap-2 px-1 py-0.5 outline-none rounded-md`,
+    check: `   flex items-center gap-2 px-1 py-0.5 outline-none rounded-md cursor-pointer`,
     'check-radio': `form rounded-full`,
     'check-radio-checked': `bg-primary rounded-full`,
     'check-checkbox': `form rounded`,
     'check-checkbox-checked': `bg-primary check-mask`,
     /* states, choose multiple */
     hov: `     bg-gray-50`,
-    foc: `     outline-focus outline-2`,
+    foc: `     outline-focus outline-0`,
     act: `     border-primary`,
     rdo: `     cursor-pointer bg-white outline-0 border-0`,
     dis: `     cursor-not-allowed bg-gray-100 text-gray-500 border-gray-400`
