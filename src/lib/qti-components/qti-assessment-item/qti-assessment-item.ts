@@ -200,16 +200,11 @@ export class QtiAssessmentItem extends LitElement {
   }
 
   public updateResponseVariable(identifier: string, value: string | string[] | undefined) {
-    const responseVariable = this.context.value.find(v => v.identifier === identifier);
-
     this.context.value = this.context.value.map(v => {
-      if (v.identifier !== identifier) {
-        return v;
+      if (v.identifier === identifier && v.type === 'response') {
+        return { ...v, value };
       }
-      return {
-        ...v,
-        value: responseVariable.cardinality === 'single' ? value : [...v.value, value as string]
-      };
+      return v;
     });
 
     this._emit<InteractionChangedDetails>('qti-interaction-changed', {
