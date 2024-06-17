@@ -48,13 +48,13 @@ const events: Signal<
   }[]
 > = signal([]);
 
-const hasState = () => context.value.find(v => v.itemIdentifier === itemRef.value.identifier);
+const hasState = () => context.value.find(v => v.itemIdentifier === itemRef.value.itemIdentifier);
 const updateState = () => {
-  const existing = context.peek().find(v => v.itemIdentifier === itemRef.value.identifier);
+  const existing = context.peek().find(v => v.itemIdentifier === itemRef.value.itemIdentifier);
   itemRef.value.variables = existing.variables.peek();
 
   context.value = context.value.map(v => {
-    if (v.itemIdentifier === itemRef.value.identifier) {
+    if (v.itemIdentifier === itemRef.value.itemIdentifier) {
       return {
         ...v,
         variables: itemRef.value.stateSignal
@@ -67,7 +67,7 @@ const createState = () => {
   context.value = [
     ...context.peek(),
     {
-      itemIdentifier: itemRef.value.identifier,
+      itemIdentifier: itemRef.value.itemIdentifier,
       variables: itemRef.value.stateSignal,
       initial: itemRef.value.stateSignal.peek()
     }
@@ -89,14 +89,14 @@ const addEvent = (type, detail, identifier) =>
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(itemCSS);
 
-const maxRange = computed(() => events.value.filter(e => e.itemIdentifier === itemRef.value.identifier).length);
-const currentRange = computed(() => events.value.filter(e => e.itemIdentifier === itemRef.value.identifier).length);
+const maxRange = computed(() => events.value.filter(e => e.itemIdentifier === itemRef.value.itemIdentifier).length);
+const currentRange = computed(() => events.value.filter(e => e.itemIdentifier === itemRef.value.itemIdentifier).length);
 const changeRange = (eventIndex: number) => {
   const myEvents = events
     .peek()
-    .filter(e => e.itemIdentifier === itemRef.value.identifier)
+    .filter(e => e.itemIdentifier === itemRef.value.itemIdentifier)
     .slice(0, eventIndex);
-  itemRef.value.variables = context.value.find(v => v.itemIdentifier === itemRef.value.identifier).initial;
+  itemRef.value.variables = context.value.find(v => v.itemIdentifier === itemRef.value.itemIdentifier).initial;
   batch(() => myEvents.forEach(ev => itemRef.value.event(ev.event)));
 };
 
