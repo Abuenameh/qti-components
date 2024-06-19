@@ -1,6 +1,6 @@
 import { Signal, SignalWatcher, batch, computed, html } from '@lit-labs/preact-signals';
 import { LitElement } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { InteractionChangedDetails, OutcomeChangedDetails, ResponseChangedDetails } from '../internal/event-types';
 import { QtiAssessmentItem } from '../qti-assessment-item/qti-assessment-item';
 
@@ -11,8 +11,11 @@ export type ItemEvent = {
 };
 @customElement('qti-item')
 export class QtiItem extends SignalWatcher(LitElement) {
+  @property({ type: String }) identifier: string;
+
   static shadowRootOptions = { ...LitElement.shadowRootOptions, mode: 'open' as any, delegatesFocus: false };
   private batchedOutcomeEvents: OutcomeChangedDetails[] = [];
+  private batchedResponseEvents: InteractionChangedDetails[] = [];
   private debounceTimeout: NodeJS.Timeout;
   private debounceResponseDelay: number = 500;
   private qtiAssessmentItem: QtiAssessmentItem;
@@ -115,21 +118,21 @@ export class QtiItem extends SignalWatcher(LitElement) {
   }
 
   private handleInteractionChanged(e: CustomEvent<InteractionChangedDetails>) {
+    this.batchedResponseEvents.push(e.detail);
     e.stopPropagation();
     clearTimeout(this.debounceTimeout);
     this.debounceTimeout = setTimeout(() => {
       this.qtiAssessmentItem.dispatchEvent(
         new CustomEvent<ResponseChangedDetails[]>('qti-responses-changed', {
-          detail: [
-            {
-              responseIdentifier: e.detail.responseIdentifier,
-              value: e.detail.response
-            }
-          ],
+          detail: this.batchedResponseEvents.map(d => ({
+            responseIdentifier: d.responseIdentifier,
+            value: d.response
+          })),
           bubbles: true,
           composed: true
         })
       );
+      this.batchedResponseEvents = [];
     }, this.debounceResponseDelay); // Adjust the debounce delay as needed
   }
 

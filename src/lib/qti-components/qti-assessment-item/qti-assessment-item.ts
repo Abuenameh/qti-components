@@ -52,14 +52,8 @@ export class QtiAssessmentItem extends LitElement {
   @provide({ context: itemContext })
   public context: Signal<ItemContext> = signal(itemContextVariables);
 
-  // public a = 0;
-
   constructor() {
     super();
-
-    // this.context.subscribe(() => {
-    //   console.log('context changed', this.a++);
-    // });
 
     this.addEventListener('qti-register-feedback', (e: CustomEvent<QtiFeedback>) => {
       e.stopPropagation();
@@ -108,7 +102,6 @@ export class QtiAssessmentItem extends LitElement {
 
           case 'outcome':
             {
-              // console.log('checkfeedback');
               this._feedbackElements.forEach(fe => fe.checkShowFeedback(variable.identifier));
             }
             break;
@@ -233,7 +226,6 @@ export class QtiAssessmentItem extends LitElement {
     });
 
     this._emit<OutcomeChangedDetails>('qti-outcome-changed', {
-      item: this.identifier,
       outcomeIdentifier: identifier,
       value: value
     });

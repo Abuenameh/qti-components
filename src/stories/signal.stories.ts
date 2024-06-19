@@ -125,13 +125,23 @@ export const Signals: Story = {
         .stylesheet=${[sheet]}
         class="item"
         @qti-item-connected=${() => (hasState() ? updateState() : createState())}
-        @qti-responses-changed=${e => addEvent(e.type, e.detail, e.currentTarget.identifier)}
-        @qti-outcomes-changed=${e => addEvent(e.type, e.detail, e.currentTarget.identifier)}
+        @qti-responses-changed=${e => {
+          console.log('qti-responses-changed', e.detail, e.currentTarget);
+          addEvent(e.type, e.detail, e.currentTarget.identifier);
+        }}
+        @qti-outcomes-changed=${e => {
+          console.log('qti-outcomes-changed', e.detail, e.currentTarget);
+          addEvent(e.type, e.detail, e.currentTarget.identifier);
+        }}
         .item=${xml.itemXML}
       >
       </qti-item>
 
       <button @click=${() => itemRef.value.process()}>Submit</button>
+
+      <small><pre>${computed(() => JSON.stringify(context.value, null, 4))}</pre></small>
+      <hr />
+      <small><pre>${computed(() => JSON.stringify(events.value, null, 4))}</pre></small>
     `;
   },
   loaders: [async ({ args }) => ({ xml: await fetchItem(`${args.serverLocation}/${args.qtipkg}`, args.itemIndex) })]
