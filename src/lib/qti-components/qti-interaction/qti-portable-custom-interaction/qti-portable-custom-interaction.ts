@@ -1,7 +1,7 @@
-import { LitElement, html } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { html } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { Interaction } from '../internal/interaction/interaction';
-import { Configuration, IMSpci, ModuleResolutionConfig, QtiVariableJSON } from './interface';
+import { IMSpci, ModuleResolutionConfig, QtiVariableJSON } from './interface';
 import { watch } from '../../../decorators/watch';
 
 declare const requirejs: any;
@@ -9,9 +9,6 @@ declare const define: any;
 
 @customElement('qti-portable-custom-interaction')
 export class QtiPortableCustomInteraction extends Interaction {
-  private module: string;
-  private customInteractionTypeIdentifier: string;
-  private _errorMessage: string = null;
   private intervalId: any;
   private rawResponse: string;
   private value: string | string[];
@@ -25,23 +22,18 @@ export class QtiPortableCustomInteraction extends Interaction {
     }
   }
 
-  static override get properties() {
-    return {
-      responseIdentifier: {
-        type: String,
-        attribute: 'response-identifier'
-      },
-      module: { type: String, attribute: 'module' },
-      customInteractionTypeIdentifier: {
-        type: String,
-        attribute: 'custom-interaction-type-identifier'
-      },
-      _errorMessage: {
-        type: String,
-        state: true
-      }
-    };
-  }
+  @property({ type: String, attribute: 'response-identifier' })
+  responseIdentifier: string;
+
+  @property({ type: String, attribute: 'module' })
+  module: string;
+
+  @property({ type: String, attribute: 'custom-interaction-type-identifier' })
+  customInteractionTypeIdentifier: string;
+
+  @state()
+  private _errorMessage: string = null;
+
   private convertQtiVariableJSON(input: QtiVariableJSON): string | string[] {
     for (const topLevelKey in input) {
       // eslint-disable-next-line no-prototype-builtins
