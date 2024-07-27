@@ -1,6 +1,6 @@
 {
-  "name": "@citolab/qti-components",
-  "repository": "https://github.com/Citolab/qti-components",
+  "name": "@Abuenameh/qti-components",
+  "repository": "https://github.com/Abuenameh/qti-components",
   "description": "QTI webcomponents",
   "author": "Patrick de Klein",
   "contributors": [
@@ -12,7 +12,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "version": "6.8.0",
+  "version": "6.8.0-abu-0",
   "type": "module",
   "exports": {
     "./qti-components": "./dist/qti-components/index.js",
