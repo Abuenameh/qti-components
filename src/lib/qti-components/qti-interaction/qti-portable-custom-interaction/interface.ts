@@ -26,6 +26,9 @@ export interface IMSpci<ConfigProperties> {
   getState: () => string;
   oncompleted?: () => void;
   destroy?: () => void; // Not used in IMS and not in TAO implementation, so not used here (optional)
+
+  setResponse(response: QtiVariableJSON): void;
+  setDisabled(disabled: boolean): void;
 }
 
 export declare type Configuration<T> = {
@@ -42,6 +45,14 @@ export declare type Configuration<T> = {
   responseIdentifier
   */
 };
+
+export interface directedPair {
+  destination: string;
+  source: string;
+}
+export declare type float = number;
+export declare type integer = number;
+export declare type ResponseType = boolean | directedPair | float | integer | string | ResponseType[];
 
 export declare type QtiVariableJSON = {
   [K in 'list' | 'base']?: {

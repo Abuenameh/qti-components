@@ -35,7 +35,7 @@ export class QtiAssessmentItem extends LitElement {
   @property({ type: String }) timeDependent: 'true' | 'false' = 'false';
 
   @property({ type: Boolean }) disabled: boolean;
-  @watch('disabled', { waitUntilFirstUpdate: true })
+  @watch('disabled', { waitUntilFirstUpdate: false })
   _handleDisabledChange = (_: boolean, disabled: boolean) => {
     this._interactionElements.forEach(ch => (ch.disabled = disabled));
   };
