@@ -11,7 +11,7 @@ export abstract class Interaction extends LitElement {
   @property({ reflect: true, type: Boolean }) readonly = false;
 
   abstract validate(): boolean;
-  abstract set response(val: Readonly<string | string[]>);
+  abstract set response(val: Readonly<string | string[] | undefined>);
   set correctResponse(val: Readonly<string | string[]>) {
     console.warn('correctResponse is not implemented');
   }
