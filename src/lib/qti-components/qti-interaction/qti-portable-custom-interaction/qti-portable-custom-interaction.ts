@@ -235,6 +235,12 @@ export class QtiPortableCustomInteraction extends Interaction {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
+    const type = this.parentElement.tagName === 'QTI-CUSTOM-INTERACTION' ? 'TAO' : 'IMS';
+    const dom: HTMLElement =
+      type == 'IMS' ? this.querySelector('qti-interaction-markup') : this.querySelector('markup');
+    const newDOM: HTMLElement =
+      type == 'IMS' ? document.createElement('qti-interaction-markup') : document.createElement('markup');
+    dom?.replaceWith(newDOM);
     this.stopChecking();
   }
 

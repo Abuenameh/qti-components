@@ -99,6 +99,11 @@ export class QtiAssessmentItem extends LitElement {
     this._emit<{ detail: QtiAssessmentItem }>('qti-assessment-item-connected', this);
   }
 
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.resetResponses();
+  }
+
   /** @deprecated use variables property instead */
   set responses(myResponses: ResponseInteraction[]) {
     if (myResponses) {
@@ -126,7 +131,7 @@ export class QtiAssessmentItem extends LitElement {
     super();
     this.addEventListener('qti-register-variable', e => {
       this._context = { ...this._context, variables: [...this._context.variables, e.detail.variable] };
-      this._initialContext = this._context;
+      // this._initialContext = this._context;
       e.stopPropagation();
     });
     this.addEventListener('qti-register-feedback', (e: CustomEvent<QtiFeedback>) => {
