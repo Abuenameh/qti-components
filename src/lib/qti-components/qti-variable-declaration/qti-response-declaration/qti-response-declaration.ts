@@ -63,12 +63,12 @@ export class QtiResponseDeclaration extends QtiVariableDeclaration {
       const values = correctResponse.querySelectorAll('qti-value');
       if (this.cardinality === 'single' && values.length > 0) {
         result = values[0].textContent;
-        values[0].remove();
+        //values[0].remove();
       } else if (this.cardinality !== 'single') {
         result = [];
         for (let i = 0; i < values.length; i++) {
           result.push(values[i].textContent);
-          values[i].remove();
+          //values[i].remove();
         }
       }
     }

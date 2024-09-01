@@ -2,7 +2,6 @@ import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { Interaction } from '../internal/interaction/interaction';
 import { IMSpci, ModuleResolutionConfig, QtiVariableJSON } from './interface';
-import { watch } from '../../../decorators/watch';
 
 declare const requirejs: any;
 declare const define: any;
@@ -14,13 +13,6 @@ export class QtiPortableCustomInteraction extends Interaction {
   private value: string | string[];
 
   private pci: IMSpci<unknown>;
-
-  @watch('disabled', { waitUntilFirstUpdate: true })
-  handleDisabledChange(_: boolean, disabled: boolean) {
-    if (this.pci) {
-      this.pci.setDisabled(disabled);
-    }
-  }
 
   @property({ type: String, attribute: 'response-identifier' })
   responseIdentifier: string;
@@ -85,6 +77,8 @@ export class QtiPortableCustomInteraction extends Interaction {
   set response(val: string | string[]) {
     // Only set state is supported in a PCI
     this.value = val;
+    const detail = Array.isArray(val) ? { 'list': { 'string': val } } : { 'base': { 'string': val } };
+    this.dispatchEvent(new CustomEvent('setresponse', { detail: detail }));
   }
 
   getTAOConfig(node) {
@@ -155,13 +149,8 @@ export class QtiPortableCustomInteraction extends Interaction {
       : (pci as any).initialize(this.customInteractionTypeIdentifier, dom.firstElementChild, config);
 
     const val = this.value;
-    if (Array.isArray(val)) {
-      this.pci.setResponse?.({ 'list': { 'string': val } });
-    }
-    else {
-      this.pci.setResponse?.({ 'base': { 'string': val } });
-    }
-    this.pci.setDisabled?.(this.disabled);
+    const detail = Array.isArray(val) ? { 'list': { 'string': val } } : { 'base': { 'string': val } };
+    this.dispatchEvent(new CustomEvent('setresponse', { detail: detail }));
 
     if (type == 'TAO') {
       const links = Array.from(this.querySelectorAll('link')).map(acc => acc.getAttribute('href'));
@@ -179,8 +168,9 @@ export class QtiPortableCustomInteraction extends Interaction {
 
   override connectedCallback(): void {
     super.connectedCallback();
+    const id = this.closest('qti-assessment-item').getAttribute('data-id') || '';
     const requireConfig: ModuleResolutionConfig = {
-      context: this.customInteractionTypeIdentifier + this.responseIdentifier,
+      context: this.customInteractionTypeIdentifier + this.responseIdentifier + id,
       catchError: true,
       paths: {}
     };

@@ -35,7 +35,7 @@ export class QtiAssessmentItem extends LitElement {
   @property({ type: String }) timeDependent: 'true' | 'false' = 'false';
 
   @property({ type: Boolean }) disabled: boolean;
-  @watch('disabled', { waitUntilFirstUpdate: false })
+  @watch('disabled', { waitUntilFirstUpdate: true })
   _handleDisabledChange = (_: boolean, disabled: boolean) => {
     this._interactionElements.forEach(ch => (ch.disabled = disabled));
   };
@@ -177,7 +177,7 @@ export class QtiAssessmentItem extends LitElement {
       const interaction: Interaction | undefined = this._interactionElements.find(
         i => i.getAttribute('response-identifier') === response.responseIdentifier
       );
-      interaction && (interaction.correctResponse = show ? response.response : '');
+      interaction && (interaction.response = show ? response.response : '');
     }
   }
 
